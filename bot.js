@@ -2,6 +2,8 @@ import { config } from 'dotenv'
 config()
 import { Telegraf }  from 'telegraf'
 import { Groq } from 'groq-sdk';
+import http from 'http';
+import { resolveMx } from 'dns';
 
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -57,31 +59,15 @@ bot.on('message', async (ctx) =>{
 
         console.error('Full error:', error.message)
     }
-    
+})
 
+const PORT = process.env.PORT || 3000;
 
-    // try{
-    //     const model = genAI.models
-
-    //     const result = await model.generateContent({ 
-    //         model: 'gemini-2.0-flash-lite',
-    //         contents: userMessage,
-    //         config:{
-    //             systemInstruction: systemPrompt
-    //         }
-    //     })
-
-    //     const response = result.text
-
-    //     ctx.reply(response)
-    //     // explain everything
-    // }catch(error){
-    //     ctx.reply('Sorry love something went wrong')
-    //     console.error('Full error:', error.message)
-    //     // console.error('Stack:', error.stack)
-    // }
-
-
+http.createServer((req,res)=>{
+    res.writeHead(200);
+    res.end("Dax lives, 🏃‍♂️")
+}).listen(PORT, () => {
+    console.log(`Dax is live on port ${PORT}`);
 })
 bot.launch()
 console.log('dax is online')
