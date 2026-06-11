@@ -59,7 +59,7 @@ bot.on('message', async (ctx) => {
     const result = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'user', content: userMessage },
+        { role: 'system', content: systemPrompt },
         ...history,
       ],
     })
