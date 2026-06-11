@@ -5,9 +5,10 @@ const TTL = 3600 //store an hour worth of time
 export async function getSession(chatId) {
   try{
     const data = await redis.get(`session:${chatId}`)
-    return data ? JSON.parse(data) : []
+    console.log('Raw data from Redis:', data, 'Type:', typeof data);
+      return data ? JSON.parse(data) : [] 
   }catch(error){
-    console.error(`Error message for parsing session ${chatId}`,error.messages )
+    console.error(`Error message for parsing session ${chatId}`,error)
     return [];
   }
 }
