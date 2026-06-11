@@ -1,5 +1,5 @@
 //redis connection
-import { redis } from './lib/redis.js'
+import { redis } from './redis.js'
 const TTL = 3600 //store an hour worth of time
 // used to get the session id of each chat and return the data in an array form if it exists
 export async function getSession(chatId) {
