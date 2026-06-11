@@ -1,7 +1,7 @@
 import { config } from 'dotenv'
 config()
 import http from 'http'
-import { bot } from './src/bot.js'
+import { bot } from './bot.js'
 
 export const PORT = process.env.PORT || 3000
 
