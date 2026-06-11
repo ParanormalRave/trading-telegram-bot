@@ -45,7 +45,7 @@ if (hours < 12) {
 bot.start((ctx) => ctx.reply(`Good ${time} Rave-kun 😒`))
 
 bot.command('reset', async (ctx) => {
-  await clearSession(ctx.chat.Id)
+  await clearSession(ctx.chat.id)
   await ctx.reply('all clear and ready to fuck `em off :)')
 })
 
@@ -55,7 +55,7 @@ bot.on('message', async (ctx) => {
 
   try {
     const history = await getSession(ctx.chat.id)
-    history.push[{ role: 'rave', content: userMessage }]
+    history.push({ role: 'user', content: userMessage })
     const result = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
@@ -65,7 +65,7 @@ bot.on('message', async (ctx) => {
     })
 
     const response = result.choices[0].message.content
-    history.push[{ role: 'rave', content: userMessage }]
+    history.push({ role: 'assistant', content: response })
     await saveSession(ctx.chat.id, history)
     await ctx.reply(response)
   } catch (error) {

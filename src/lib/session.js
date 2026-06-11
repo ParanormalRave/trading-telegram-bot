@@ -10,9 +10,6 @@ export async function getSession(chatId) {
     console.error(`Error message for parsing session ${chatId}`,error.messages )
     return [];
   }
-  
-
-  
 }
 
 //use the acquired chat id to save the stringified message and then destruct after an hour of inactivity
