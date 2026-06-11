@@ -1,3 +1,5 @@
+import dotenv from 'dotenv'
+dotenv.config();
 import { Telegraf } from 'telegraf'
 import { Groq } from 'groq-sdk'
 import { getSession, saveSession, clearSession } from './lib/session.js'
