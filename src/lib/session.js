@@ -3,13 +3,16 @@ import { redis } from './redis.js'
 const TTL = 3600 //store an hour worth of time
 // used to get the session id of each chat and return the data in an array form if it exists
 export async function getSession(chatId) {
-  try{
+  try {
     const data = await redis.get(`session:${chatId}`)
-    console.log('Raw data from Redis:', data, 'Type:', typeof data);
-      return data ? JSON.parse(data) : [] 
-  }catch(error){
-    console.error(`Error message for parsing session ${chatId}`,error)
-    return [];
+    console.log('Raw data from Redis:', data, 'Type:', typeof data)
+    if (typeof data === 'object' && data !== null) {
+      return data
+    }
+    return data ? JSON.parse(data) : []
+  } catch (error) {
+    console.error(`Error message for parsing session ${chatId}`, error)
+    return []
   }
 }
 
