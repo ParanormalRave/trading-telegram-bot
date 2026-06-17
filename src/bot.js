@@ -118,12 +118,12 @@ bot.on('message', async (ctx) => {
     const tokenUsed = result.usage.completion_tokens
     history.push({ role: 'assistant', content: response })
     await saveSession(ctx.chat.id, history)
-    saveMessagesToPostgres(chatId, 'user', userMessage).catch((err) =>
-      console.error('Failed to save user message:', err),
-    )
-    saveMessagesToPostgres(chatId, 'assistant', response, tokenUsed).catch((err) =>
-      console.error('Failed to save messages:', err),
-    )
+    // saveMessagesToPostgres(chatId, 'user', userMessage).catch((err) =>
+    //   console.error('Failed to save user message:', err),
+    // )
+    // saveMessagesToPostgres(chatId, 'assistant', response, tokenUsed).catch((err) =>
+    //   console.error('Failed to save messages:', err),
+    // )
     await ctx.reply(response)
   } catch (error) {
     await ctx.reply('Sorry love, something went wrong')
