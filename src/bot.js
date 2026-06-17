@@ -129,5 +129,3 @@ bot.on('message', async (ctx) => {
     console.error('Full error:', error.message)
   }
 })
-
-export {bot}
