@@ -1,8 +1,9 @@
 import dotenv from 'dotenv'
-dotenv.config();
+dotenv.config()
 import { Telegraf } from 'telegraf'
 import { Groq } from 'groq-sdk'
 import { getSession, saveSession, clearSession } from './lib/session.js'
+import { saveMessagesToPostgres } from './lib/conversations.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -109,18 +110,24 @@ bot.on('message', async (ctx) => {
     history.push({ role: 'user', content: userMessage })
     const result = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...history,
-      ],
+      messages: [{ role: 'system', content: systemPrompt }, ...history],
     })
 
     const response = result.choices[0].message.content
+    const tokenUsed = result.usage.completion_tokens
     history.push({ role: 'assistant', content: response })
     await saveSession(ctx.chat.id, history)
+    saveMessagesToPostgres(chatId, 'user', userMessage).catch((err) =>
+      console.error('Failed to save user message:', error),
+    )
+    saveMessagesToPostgres(chatId, 'assistant', response, tokenUsed).catch((err) =>
+      console.error('Failed to save messages:', err),
+    )
     await ctx.reply(response)
   } catch (error) {
     await ctx.reply('Sorry love, something went wrong')
     console.error('Full error:', error.message)
   }
 })
+
+export {bot}
