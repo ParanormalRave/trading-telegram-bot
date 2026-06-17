@@ -103,10 +103,11 @@ bot.command('reset', async (ctx) => {
 
 bot.on('message', async (ctx) => {
   const userMessage = ctx.message.text
+  const chatId = ctx.chat.id
   if (!userMessage) return
 
   try {
-    const history = await getSession(ctx.chat.id)
+    const history = await getSession(chatId)
     history.push({ role: 'user', content: userMessage })
     const result = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
@@ -118,7 +119,7 @@ bot.on('message', async (ctx) => {
     history.push({ role: 'assistant', content: response })
     await saveSession(ctx.chat.id, history)
     saveMessagesToPostgres(chatId, 'user', userMessage).catch((err) =>
-      console.error('Failed to save user message:', error),
+      console.error('Failed to save user message:', err),
     )
     saveMessagesToPostgres(chatId, 'assistant', response, tokenUsed).catch((err) =>
       console.error('Failed to save messages:', err),
