@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import pg from 'pg'
-const pool = new pg.pool({
+const pool = new pg.Pool({
   host: process.env.POSTGRES_HOST,
   port: process.env.POSTGRES_PORT || 5432,
   database: process.env.POSTGRES_DB,
