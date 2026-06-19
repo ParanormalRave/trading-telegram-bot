@@ -1,7 +1,7 @@
 import { db } from './postgres.js'
 export async function saveMessagesToPostgres(chatId, role, content, tokenUsed = null) {
   try {
-    const result = await db.query()(
+    const result = await db.query(
       'INSERT INTO dax_conversations (chat_id, role, content, token_used) VALUES ($1, $2, $3, $4) RETURNING id',
       [chatId, role, content, tokenUsed],
     )

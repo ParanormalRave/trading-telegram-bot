@@ -12,15 +12,16 @@ const pool = new pg.Pool({
   max: 10,
   min: 2,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+  connectionTimeoutMillis: 10000,
+  ssl: { rejectUnauthorized: false },
+})
 
 pool.on('connect', () => {
-  console.log('Connected to SparkDB');
-});
+  console.log('Connected to SparkDB')
+})
 
 pool.on('error', (err) => {
-  console.error('SparkDB connection error:', err);
-});
+  console.error('SparkDB connection error:', err)
+})
 
-export const db = pool;
+export const db = pool
