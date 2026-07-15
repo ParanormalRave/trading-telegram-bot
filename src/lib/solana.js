@@ -111,5 +111,3 @@ export async function getHolderConditions(tokenAddress) {
   }
   return owners.size
 }
-
-c
