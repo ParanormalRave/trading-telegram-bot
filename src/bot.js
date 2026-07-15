@@ -1,9 +1,12 @@
 import dotenv from 'dotenv'
 dotenv.config()
-import { Telegraf } from 'telegraf'
+import { Telegraf, Markup } from 'telegraf'
 import { Groq } from 'groq-sdk'
-import { getSession, saveSession, clearSession } from './lib/session.js'
+import { getSession, saveSession, clearSession, getMode, setMode } from './lib/session.js'
+import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
+import { connection } from './lib/solana.js'
+
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -101,6 +104,47 @@ bot.command('reset', async (ctx) => {
   await ctx.reply('all clear and ready to fuck `em off :)')
 })
 
+bot.command('trading', async (ctx) => {
+  await setMode(ctx.chat.id, 'trading')
+  await ctx.reply(`📈 Trading mode is On. Paste a contact address to see details`)
+})
+
+bot.command('chat', async (ctx) => {
+  await setMode(ctx.chat.id, 'chat')
+  await ctx.reply(`💬 chat mode is on`)
+})
+
+bot.command('menu', (ctx) => {
+  ctx.reply(
+    'Choose a mode:',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('💬 Chat Mode', 'mode_chat')],
+      [Markup.button.callback('📈 Trading Mode', 'mode_trading')],
+    ])
+  )
+})
+
+bot.action('mode_trading', async(ctx) =>{
+  await setMode(ctx.chat.id,' trading')
+  await ctx.answerCbQuery()
+  await ctx.reply('Switched to Trading mode')
+})
+
+bot.action('mode_chat', async(ctx) => {
+  await setMode(ctx.chat.id, 'chat')
+  await ctx.answerCbQuery()
+  await ctx.reply('Switched back to Chat mode')
+})
+
+bot.on('text', async(ctx,next)=>{
+  const mode = await getMode(ctx.chat.id)
+  if (mode === 'trading'){
+    return handleTradingInput(ctx)
+  }
+  return next()
+})
+
+
 bot.on('message', async (ctx) => {
   const userMessage = ctx.message.text
   const chatId = ctx.chat.id
@@ -130,3 +174,15 @@ bot.on('message', async (ctx) => {
     console.error('Full error:', error.message)
   }
 })
+
+async function handleTradingInput(ctx) {
+  const text = ctx.message.text.trim()
+  const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+
+  if (solanaAddressRegex.test(text)){
+    const info = await getTokenInfoWithFallback(text)
+    if(!info) return ctx.reply('Damn....urgh no data found for this address')
+      return ctx.reply(`${info.name} (${info.symbol})-$${info.priceUsd}`)
+  }
+    return ctx.reply('In Trading Mode. Paste a CA to look up a token.')
+}

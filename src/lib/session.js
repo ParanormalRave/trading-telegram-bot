@@ -1,6 +1,7 @@
 //redis connection
+import { message } from 'telegraf/filters'
 import { redis } from './redis.js'
-const TTL = 3600 //store an hour worth of time
+const TTL = 86400 //store an days worth of time 
 // used to get the session id of each chat and return the data in an array form if it exists
 export async function getSession(chatId) {
   try {
@@ -25,3 +26,14 @@ export async function saveSession(chatId, messages) {
 export async function clearSession(chatId) {
   await redis.del(`session:${chatId}`)
 }
+
+// gets the chat mode this makes the mode change to chat by default
+export async function getMode(chatId){
+  const mode = await redis.get(`mode:${chatId}`)
+  return mode || `chat`
+}
+
+export async function setMode(chatId, mode){
+  await redis.set(`mode:${chatId}`, mode)
+}
+
