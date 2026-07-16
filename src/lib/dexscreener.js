@@ -42,3 +42,14 @@ export async function getTokenInfoWithFallback(address){
     source: `geckoterminal`
   }
 }
+
+export async function getPriceHistory(poolAddress){
+  const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/hour`)
+  const data = await res.json()
+
+  const candles = await data.data.attributes.ohlcv_list
+  return candles.map(([timestamp, open, high, low, close]) => ({
+    time: new Date(timestamp*1000).toLocaleTimeString(),
+    price: close,
+  })).reverse()
+}

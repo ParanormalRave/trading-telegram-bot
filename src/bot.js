@@ -5,8 +5,9 @@ import { Groq } from 'groq-sdk'
 import { getSession, saveSession, clearSession, getMode, setMode } from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
-import { connection } from './lib/solana.js'
-
+import { connection, getTokenAuthority, getTopHolders } from './lib/solana.js'
+import { generateChartImage } from './lib/quickchart.js'
+import { getPriceHistory } from './lib/dexscreener.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -120,30 +121,29 @@ bot.command('menu', (ctx) => {
     Markup.inlineKeyboard([
       [Markup.button.callback('💬 Chat Mode', 'mode_chat')],
       [Markup.button.callback('📈 Trading Mode', 'mode_trading')],
-    ])
+    ]),
   )
 })
 
-bot.action('mode_trading', async(ctx) =>{
-  await setMode(ctx.chat.id,' trading')
+bot.action('mode_trading', async (ctx) => {
+  await setMode(ctx.chat.id, 'trading')
   await ctx.answerCbQuery()
   await ctx.reply('Switched to Trading mode')
 })
 
-bot.action('mode_chat', async(ctx) => {
+bot.action('mode_chat', async (ctx) => {
   await setMode(ctx.chat.id, 'chat')
   await ctx.answerCbQuery()
   await ctx.reply('Switched back to Chat mode')
 })
 
-bot.on('text', async(ctx,next)=>{
+bot.on('text', async (ctx, next) => {
   const mode = await getMode(ctx.chat.id)
-  if (mode === 'trading'){
+  if (mode === 'trading') {
     return handleTradingInput(ctx)
   }
   return next()
 })
-
 
 bot.on('message', async (ctx) => {
   const userMessage = ctx.message.text
@@ -176,13 +176,45 @@ bot.on('message', async (ctx) => {
 })
 
 async function handleTradingInput(ctx) {
-  const text = ctx.message.text.trim()
-  const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
+  try {
+    const text = ctx.message.text.trim()
+    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
 
-  if (solanaAddressRegex.test(text)){
-    const info = await getTokenInfoWithFallback(text)
-    if(!info) return ctx.reply('Damn....urgh no data found for this address')
-      return ctx.reply(`${info.name} (${info.symbol})-$${info.priceUsd}`)
+    if (solanaAddressRegex.test(text)) {
+      const info = await getTokenInfoWithFallback(text)
+      if (!info) return ctx.reply('Damn....urgh no data found for this address')
+      const authority = await getTokenAuthority(text).catch(() => null)
+      const holders = await getTopHolders(text).catch(() => null)
+      const holderCount = await getHolderCount(text).catch(() => null)
+
+      const mintStatus = await getTokenAuthority.isMintable ? '⚠ warning' : '✔ Renounced'
+      const freezeStatus = await getTokenAuthority.isFreezable ? '⚠ warning' : '✔ Renounced'
+      const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
+      const message = `
+      📊 *${info.name}* (${info.symbol})
+
+      💸 Price: $${info.priceUsd}
+      📉 24h Change: ${info.priceChange24h}
+      💧  Liquidity: $${Number(info.liquidityUsd ?? 0).toLocaleString()}
+      💹 24h Volume: $${Number(info.volume24h ?? 0).toLocaleString()}
+      🏷  Market Cap: ${info.marketCap ? '$' + Number(info.marketCap).toLocaleString() : 'N/A'}
+      🔁 DEX: ${info.dex}
+
+      🔐 Mint Authority: ${mintStatus}
+      🥶 Freeze Authority: ${freezeStatus}
+      👥 Holders: ${holderCount ?? 'N/A'}
+      ⚓ Top 10 Holders: ${top10Holders}
+
+    `.trim()
+      const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
+      if (priceHistory) {
+        const chartUrl = await generateChartImage(priceHistory)
+        return  ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
+      }
+      return ctx.replyWithMarkdown(message)
+    }
+  } catch (err) {
+    console.error('handleTradingInput failed', err)
+    return ctx.reply('⚠ Yikes, something went wrong please try again later')
   }
-    return ctx.reply('In Trading Mode. Paste a CA to look up a token.')
 }
