@@ -184,8 +184,8 @@ async function handleTradingInput(ctx) {
       const info = await getTokenInfoWithFallback(text)
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       const authority = await getTokenAuthority(text).catch(() => null)
-      const holders = await getTopHolders(text).catch(() => null)
-      const holderCount = await getHolderCount(text).catch(() => null)
+      // const holders = await getTopHolders(text).catch(() => null)
+      // const holderCount = await getHolderCount(text).catch(() => null)
 
       const mintStatus = await getTokenAuthority.isMintable ? '⚠ warning' : '✔ Renounced'
       const freezeStatus = await getTokenAuthority.isFreezable ? '⚠ warning' : '✔ Renounced'
