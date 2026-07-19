@@ -1,6 +1,6 @@
 const getTokeninfo = async (address) => {
   const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`)
-  const data = res.json();
+  const data = await res.json();
 
   if (!data.pairs || data.pairs.length === 0) return null
   // finding the real market data
