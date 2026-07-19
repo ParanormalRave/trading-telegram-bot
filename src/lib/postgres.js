@@ -13,7 +13,7 @@ const pool = new pg.Pool({
   min: 2,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  ssl: { rejectUnauthorized: required },
+  ssl: { rejectUnauthorized: true },
 })
 
 pool.on('connect', () => {
