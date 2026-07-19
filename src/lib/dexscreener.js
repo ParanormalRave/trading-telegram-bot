@@ -4,7 +4,8 @@ const getTokeninfo = async (address) => {
 
   if (!data.pairs || data.pairs.length === 0) return null
   // finding the real market data
-  const pair = data.pairs.sort((a,b)=> (b.liquidity.usd ?? 0) - (a.liquidity.usd ?? 0)) [0];
+  const pair = data.pairs.sort((a,b)=> (b.liquidity.usd ?? 0) - (a.liquidity.usd ?? 0)) [0]
+  console.log(data)
   return {
     address,
     name: pair.baseToken.name,
