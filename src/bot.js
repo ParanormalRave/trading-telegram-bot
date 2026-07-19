@@ -189,7 +189,7 @@ async function handleTradingInput(ctx) {
 
       const mintStatus = await getTokenAuthority.isMintable ? '⚠ warning' : '✔ Renounced'
       const freezeStatus = await getTokenAuthority.isFreezable ? '⚠ warning' : '✔ Renounced'
-      const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
+      // const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
       const message = `
       📊 *${info.name}* (${info.symbol})
 
