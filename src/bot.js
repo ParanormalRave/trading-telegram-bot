@@ -202,8 +202,7 @@ async function handleTradingInput(ctx) {
 
       🔐 Mint Authority: ${mintStatus}
       🥶 Freeze Authority: ${freezeStatus}
-      👥 Holders: ${holderCount ?? 'N/A'}
-      ⚓ Top 10 Holders: ${top10Holders}
+    
 
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
