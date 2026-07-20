@@ -4,16 +4,16 @@ const getTokeninfo = async (address) => {
 
   if (!data.pairs || data.pairs.length === 0) return null
   // finding the real market data
-  const pair = data.pairs.sort((a,b)=> (b.liquidity.usd ?? 0) - (a.liquidity.usd ?? 0)) [0]
+  const pair = data.pairs.sort((a,b)=> (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0)) [0]
   console.log(data)
   return {
     address,
     name: pair.baseToken.name,
-    Symbol: pair.baseToken.symbol,
+    symbol: pair.baseToken.symbol,
     priceUsd: pair.priceUsd,
-    priceChange24h: pair.priceChange.h24,
-    liquidityUsd: pair.liquidity.usd,
-    volume24h: pair.volume.h24,
+    priceChange24h: pair.priceChange?.h24,
+    liquidityUsd: pair.liquidity?.usd,
+    volume24h: pair.volume?.h24,
     marketCap: pair.marketCap ?? null,
     dex: pair.dexId,
     pairAddress: pair.pairAddress,
