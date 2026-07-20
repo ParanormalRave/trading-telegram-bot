@@ -1,10 +1,10 @@
 const getTokeninfo = async (address) => {
   const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`)
-  const data = await res.json();
+  const data = await res.json()
 
   if (!data.pairs || data.pairs.length === 0) return null
   // finding the real market data
-  const pair = data.pairs.sort((a,b)=> (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0)) [0]
+  const pair = data.pairs.sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0]
   console.log(data)
   return {
     address,
@@ -22,35 +22,43 @@ const getTokeninfo = async (address) => {
   }
 }
 
-export async function getTokenInfoWithFallback(address){
-  try{
+export async function getTokenInfoWithFallback(address) {
+  try {
     const dex = await getTokeninfo(address)
     if (dex) return dex
-  }catch(e){
-    console.warn("Dex Screeener is not connected, trying coingecko")
+  } catch (e) {
+    console.warn('Dex Screeener is not connected, trying coingecko')
   }
 
   const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${address}`)
   const data = await res.json()
   const attrs = data.data.attributes
 
-
   return {
     name: attrs.name,
     symbol: attrs.symbol,
     priceUsd: attrs.price_usd,
     marketCap: attrs.market_cap_usd,
-    source: `geckoterminal`
+    source: `geckoterminal`,
   }
 }
 
-export async function getPriceHistory(poolAddress){
-  const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/hour`)
+// this is for the chart
+export async function getPriceHistory(poolAddress) {
+  const res = await fetch(
+    `https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/hour`,
+  )
   const data = await res.json()
 
-  const candles = await data.data.attributes.ohlcv_list
-  return candles.map(([timestamp, open, high, low, close]) => ({
-    time: new Date(timestamp*1000).toLocaleTimeString(),
-    price: close,
-  })).reverse()
+  const candles = (await data.data?.attributes?.ohlcv_list) ?? []
+
+  return candles
+    .map(([timestamp, open, high, low, close]) => ({
+      timestamp: timestamp*1000,
+      open,
+      high,
+      low,
+      close,
+    }))
+    .reverse()
 }

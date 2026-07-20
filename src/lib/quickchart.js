@@ -1,4 +1,5 @@
 export async function generateChartImage(priceHistory){
+
   const chartConfig = {
     type: 'candlestick',
     data: {
@@ -6,7 +7,7 @@ export async function generateChartImage(priceHistory){
       dataSet: [
         {
           label: 'Price (USD)',
-          data: ohlcData.map((c) =>({
+          data: priceHistory.map((c) =>({
             x: c.timestamp,
             o: c.open,
             h: c.high,

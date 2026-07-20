@@ -206,9 +206,9 @@ async function handleTradingInput(ctx) {
 
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
-      if (priceHistory) {
+      if (priceHistory && priceHistory.length > 0) {
         const chartUrl = await generateChartImage(priceHistory)
-        return  ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
+        return ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
       }
       return ctx.replyWithMarkdown(message)
     }else{
