@@ -32,13 +32,13 @@ export async function getTokenInfoWithFallback(address) {
 
   const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${address}`)
   const data = await res.json()
-  const attrs = data.data.attributes
+  const attrs = data?.data?.attributes
 
   return {
-    name: attrs.name,
-    symbol: attrs.symbol,
-    priceUsd: attrs.price_usd,
-    marketCap: attrs.market_cap_usd,
+    name: attrs?.name,
+    symbol: attrs?.symbol,
+    priceUsd: attrs?.price_usd,
+    marketCap: attrs?.market_cap_usd,
     source: `geckoterminal`,
   }
 }

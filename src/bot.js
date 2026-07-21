@@ -6,7 +6,7 @@ import { getSession, saveSession, clearSession, getMode, setMode } from './lib/s
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders } from './lib/solana.js'
-import { generateChartImage } from './lib/quickchart.js'
+import { generateCandleStickChart } from './lib/quickchart.js'
 import { getPriceHistory } from './lib/dexscreener.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
@@ -205,7 +205,7 @@ async function handleTradingInput(ctx) {
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
-        const chartUrl = await generateChartImage(priceHistory)
+        const chartUrl = await generateCandleStickChart(priceHistory)
         return ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
       }
       return ctx.replyWithMarkdown(message)

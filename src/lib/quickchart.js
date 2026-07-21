@@ -1,13 +1,11 @@
-export async function generateChartImage(priceHistory){
-
+export async function generateCandleStickChart(priceHistory) {
   const chartConfig = {
     type: 'candlestick',
     data: {
-      labels: priceHistory.map((p) => p.time),
-      dataSet: [
+      dataset: [
         {
           label: 'Price (USD)',
-          data: priceHistory.map((c) =>({
+          data: priceHistory.map((c) => ({
             x: c.timestamp,
             o: c.open,
             h: c.high,
@@ -19,10 +17,10 @@ export async function generateChartImage(priceHistory){
     },
     options: {
       scales: {
-        x:{
+        x: {
           type: 'time',
-          time: {unit: 'hour'},
-        }
+          time: { unit: 'hour' },
+        },
       },
     },
   }
