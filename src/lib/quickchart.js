@@ -2,7 +2,7 @@ export async function generateCandleStickChart(priceHistory) {
   const chartConfig = {
     type: 'candlestick',
     data: {
-      dataset: [
+      datasets: [
         {
           label: 'Price (USD)',
           data: priceHistory.map((c) => ({
