@@ -27,5 +27,7 @@ export async function generateChartImage(priceHistory){
     },
   }
   const url = `https://quickchart.io/chart?v=3&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
+  console.log(url)
+  console.log(`Price History: ${priceHistory?.length}`)
   return url
 }
