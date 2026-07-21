@@ -187,8 +187,8 @@ async function handleTradingInput(ctx) {
       // const holders = await getTopHolders(text).catch(() => null)
       // const holderCount = await getHolderCount(text).catch(() => null)
 
-      const mintStatus = await authority?.isMintable ? '⚠ warning' : '✔ Renounced'
-      const freezeStatus = await authority?.isFreezable ? '⚠ warning' : '✔ Renounced'
+      const mintStatus = (await authority?.isMintable) ? '⚠ warning' : '✔ Renounced'
+      const freezeStatus = (await authority?.isFreezable) ? '⚠ warning' : '✔ Renounced'
       // const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
       const message = `
       📊 *${info.name}* (${info.symbol})
@@ -202,8 +202,6 @@ async function handleTradingInput(ctx) {
 
       🔐 Mint Authority: ${mintStatus}
       🥶 Freeze Authority: ${freezeStatus}
-    
-
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
@@ -211,9 +209,10 @@ async function handleTradingInput(ctx) {
         return ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
       }
       return ctx.replyWithMarkdown(message)
-    }else{
-      return ctx.reply ('In trading mode. Paste a Ca to look up a token')
-    }
+    } 
+    // else {
+    //   return ctx.reply('In trading mode. Paste a Ca to look up a token')
+    // }
   } catch (err) {
     console.error('handleTradingInput failed', err)
     return ctx.reply('⚠ Yikes, something went wrong please try again later')
