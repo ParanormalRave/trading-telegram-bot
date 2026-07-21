@@ -17,6 +17,14 @@ export async function generateChartImage(priceHistory){
         },
       ],
     },
+    options: {
+      scales: {
+        x:{
+          type: 'time',
+          time: {unit: 'hour'},
+        }
+      },
+    },
   }
   const url = `https://quickchart.io/chart?v=3&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
   return url
