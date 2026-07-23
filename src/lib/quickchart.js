@@ -17,7 +17,7 @@ export async function generateCandleStickChart(priceHistory) {
     },
     options: {
       scales: {
-        x: {
+        x: {  
           type: 'time',
           time: { unit: 'hour' },
         },

@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 import { Telegraf, Markup } from 'telegraf'
 import { Groq } from 'groq-sdk'
-import { getSession, saveSession, clearSession, getMode, setMode } from './lib/session.js'
+import { getSession, saveSession, clearSession, getMode, setMode, getPendingChart, setPendingChart} from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders } from './lib/solana.js'
@@ -137,6 +137,35 @@ bot.action('mode_chat', async (ctx) => {
   await ctx.reply('Switched back to Chat mode')
 })
 
+bot.action(/^tf_(.+)$/, async (ctx) => {
+  try{
+    const timeframe = ctx.match[1]
+    const poolAddress = await getPendingChart(ctx.chat.id)
+
+    if (!poolAddress){
+      await ctx.answerCbQuery('session expired, paste the address again')
+      return
+    }
+
+    const priceHistory = await generateCandleStickChart(priceHistory)
+    if(!priceHistory || priceHistory === 0){
+      await ctx.answerCbQuery('No data for that time frame ')
+      return
+    }
+
+    const chatUrl = await generateCandleStickChart(priceHistory)
+    await ctx.answerCbQuery()
+    await ctx.editMessageMedia({
+      type: 'photo',
+      media: chatUrl
+    })
+  }catch(err){
+    console.error('Timeframe switch failed:', err)
+    await ctx.answerCbQuery('something went wrong .... sha try again')
+  }
+})
+
+
 bot.on('text', async (ctx, next) => {
   const mode = await getMode(ctx.chat.id)
   if (mode === 'trading') {
@@ -182,6 +211,7 @@ async function handleTradingInput(ctx) {
 
     if (solanaAddressRegex.test(text)) {
       const info = await getTokenInfoWithFallback(text)
+      await setPendingChart(ctx.chat.id, info.pairAddress)
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       const authority = await getTokenAuthority(text).catch(() => null)
       // const holders = await getTopHolders(text).catch(() => null)
@@ -206,11 +236,21 @@ async function handleTradingInput(ctx) {
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
         const chartUrl = await generateCandleStickChart(priceHistory)
-        return ctx.replyWithPhoto(chartUrl, { caption: message, parse_mode: 'Markdown' })
+        return ctx.replyWithPhoto(chartUrl, {
+          caption: message,
+          parse_mode: 'Markdown',
+          ...Markup.inlineKeyboard([
+            [
+              Markup.button.callback('1H', 'tf_hour'),
+              Markup.button.callback('1D', 'tf_day'),
+              Markup.button.callback('1M', 'tf_minute'),
+            ],
+          ]),
+        })
       }
+
       return ctx.replyWithMarkdown(message)
-    } 
-    else {
+    } else {
       return ctx.reply('In trading mode. Paste a Ca to look up a token. Might be a solana token')
     }
   } catch (err) {

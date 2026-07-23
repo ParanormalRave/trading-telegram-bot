@@ -44,7 +44,7 @@ export async function getTokenInfoWithFallback(address) {
 }
 
 // this is for the chart
-export async function getPriceHistory(poolAddress) {
+export async function getPriceHistory(poolAddress, timeframe = 'hour') {
   const res = await fetch(
     `https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/hour`,
   )
