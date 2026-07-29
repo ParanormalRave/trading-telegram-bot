@@ -13,8 +13,8 @@ export async function generateCandleStickChart(priceHistory) {
             c: c.close,
           })),
           color: {
-            up: '#26a69a',
-            down: '#ef5350',
+            up: '#3dd4df',
+            down: '#160302',
             unchanged: '#999999',
           },
         },
@@ -25,12 +25,12 @@ export async function generateCandleStickChart(priceHistory) {
         x: {
           type: 'time', 
           time: { unit: 'hour' },
-          grid: { color: '#333333' },
+          grid: { display: false },
           ticks: { color: '#cccccc' },
         },
         y: {
           type: 'linear',
-          grid: { color: '#333333' },
+          grid: { display: false},
           ticks: { color: '#cccccc' },
         },
       },
