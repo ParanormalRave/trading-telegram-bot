@@ -166,7 +166,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
       return
     }
 
-    const priceHistory = await generateCandleStickChart(priceHistory)
+    const priceHistory = await getPriceHistory(priceHistory, config.timeframe, config.aggregate, config.limit)
     if (!priceHistory || priceHistory === 0) {
       await ctx.answerCbQuery('No data for that time frame ')
       return
@@ -229,8 +229,8 @@ async function handleTradingInput(ctx) {
 
     if (solanaAddressRegex.test(text)) {
       const info = await getTokenInfoWithFallback(text)
-      await setPendingChart(ctx.chat.id, info.pairAddress)
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
+      await setPendingChart(ctx.chat.id, info.pairAddress)
       const authority = await getTokenAuthority(text).catch(() => null)
       // const holders = await getTopHolders(text).catch(() => null)
       // const holderCount = await getHolderCount(text).catch(() => null)
@@ -262,7 +262,7 @@ async function handleTradingInput(ctx) {
               Markup.button.callback('5M', 'tf_5m'),
               Markup.button.callback('15M', 'tf_15m'),
               Markup.button.callback('1H', 'tf_1h'),
-            ],
+            ],  
             [
               Markup.button.callback('4H', 'tf_4h'), 
               Markup.button.callback('1D', 'tf_1d')],
