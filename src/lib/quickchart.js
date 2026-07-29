@@ -5,7 +5,6 @@ export async function generateCandleStickChart(priceHistory) {
       datasets: [
         {
           label: 'Price (USD)',
-          backgroundColor: 'rgb(0,0,0,0.50)',
           data: priceHistory.map((c) => ({
             x: c.timestamp,
             o: c.open,
@@ -24,7 +23,7 @@ export async function generateCandleStickChart(priceHistory) {
     options: {
       scales: {
         x: {
-          type: 'time',
+          type: 'time', 
           time: { unit: 'hour' },
           grid: { color: '#333333' },
           ticks: { color: '#cccccc' },
