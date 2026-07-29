@@ -2,7 +2,15 @@ import dotenv from 'dotenv'
 dotenv.config()
 import { Telegraf, Markup } from 'telegraf'
 import { Groq } from 'groq-sdk'
-import { getSession, saveSession, clearSession, getMode, setMode, getPendingChart, setPendingChart} from './lib/session.js'
+import {
+  getSession,
+  saveSession,
+  clearSession,
+  getMode,
+  setMode,
+  getPendingChart,
+  setPendingChart,
+} from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders } from './lib/solana.js'
@@ -138,17 +146,28 @@ bot.action('mode_chat', async (ctx) => {
 })
 
 bot.action(/^tf_(.+)$/, async (ctx) => {
-  try{
+  try {
     const timeframe = ctx.match[1]
     const poolAddress = await getPendingChart(ctx.chat.id)
 
-    if (!poolAddress){
+    const tfMap = {
+      '5m': { timeframe: 'minute', aggregate: 5, limit: 100 },
+      '15m': { timeframe: 'minute', aggregate: 15, limit: 100 },
+      '1h': { timeframe: 'hour', aggregate: 1, limit: 100 },
+      '4h': { timeframe: 'hour', aggregate: 4, limit: 100 },
+      '1d': { timeframe: 'day', aggregate: 1, limit: 30 },
+    }
+
+    const config = tfMap[timeframe]
+    if (!config) return ctx.answerCbQuery('Unknown timeframe')
+
+    if (!poolAddress) {
       await ctx.answerCbQuery('session expired, paste the address again')
       return
     }
 
     const priceHistory = await generateCandleStickChart(priceHistory)
-    if(!priceHistory || priceHistory === 0){
+    if (!priceHistory || priceHistory === 0) {
       await ctx.answerCbQuery('No data for that time frame ')
       return
     }
@@ -157,14 +176,13 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     await ctx.answerCbQuery()
     await ctx.editMessageMedia({
       type: 'photo',
-      media: chatUrl
+      media: chatUrl,
     })
-  }catch(err){
+  } catch (err) {
     console.error('Timeframe switch failed:', err)
     await ctx.answerCbQuery('something went wrong .... sha try again')
   }
 })
-
 
 bot.on('text', async (ctx, next) => {
   const mode = await getMode(ctx.chat.id)
@@ -241,10 +259,13 @@ async function handleTradingInput(ctx) {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard([
             [
-              Markup.button.callback('1H', 'tf_hour'),
-              Markup.button.callback('1D', 'tf_day'),
-              Markup.button.callback('1M', 'tf_minute'),
+              Markup.button.callback('5M', 'tf_5m'),
+              Markup.button.callback('15M', 'tf_15m'),
+              Markup.button.callback('1H', 'tf_1h'),
             ],
+            [
+              Markup.button.callback('4H', 'tf_4h'), 
+              Markup.button.callback('1D', 'tf_1d')],
           ]),
         })
       }
