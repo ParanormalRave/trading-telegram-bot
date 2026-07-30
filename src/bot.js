@@ -13,7 +13,7 @@ import {
 } from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
-import { connection, getTokenAuthority, getTopHolders } from './lib/solana.js'
+import { connection, getTokenAuthority, getTopHolders, getHolderConditions} from './lib/solana.js'
 import { generateCandleStickChart } from './lib/quickchart.js'
 import { getPriceHistory } from './lib/dexscreener.js'
 
@@ -167,7 +167,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     }
 
     const priceHistory = await getPriceHistory(poolAddress, config.timeframe, config.aggregate, config.limit)
-    if (!priceHistory || priceHistory === 0) {
+    if (!priceHistory || priceHistory.length === 0) {
       await ctx.answerCbQuery('No data for that time frame ')
       return
     }
@@ -232,12 +232,12 @@ async function handleTradingInput(ctx) {
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       await setPendingChart(ctx.chat.id, info.pairAddress)
       const authority = await getTokenAuthority(text).catch(() => null)
-      // const holders = await getTopHolders(text).catch(() => null)
-      // const holderCount = await getHolderCount(text).catch(() => null)
+      const holders = await getTopHolders(text).catch(() => null)
+      const holderCount = await getHolderConditions(text).catch(() => null)
 
       const mintStatus = (await authority?.isMintable) ? '⚠ warning' : '✔ Renounced'
       const freezeStatus = (await authority?.isFreezable) ? '⚠ warning' : '✔ Renounced'
-      // const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
+      const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
       const message = `
       📊 *${info.name}* (${info.symbol})
 
@@ -250,6 +250,8 @@ async function handleTradingInput(ctx) {
 
       🔐 Mint Authority: ${mintStatus}
       🥶 Freeze Authority: ${freezeStatus}
+      👥 Holders: ${holderCount ?? 'N/A'}
+      🔝 Top 10 Hold: ${top10Holders}
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {

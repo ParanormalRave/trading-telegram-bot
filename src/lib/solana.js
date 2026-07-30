@@ -5,7 +5,7 @@ import { getMint } from '@solana/spl-token'
 const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
 export const connection = new Connection(RPC_URL, 'confirmed')
 
-async function getBalance(walletAddress) {
+export async function getBalance(walletAddress) {
   const publicKey = new PublicKey(walletAddress)
   const lamports = await connection.getBalance(publicKey)
   return lamports / 1e9
@@ -46,12 +46,12 @@ export async function checkLiquidityBurnStatus(lpMintAddress) {
     }
 
     const burnedPercentage = (burnedAmount / totalLpSupply) * 100
-    return {
-      totalLpSupply,
-      burnedAmount,
-      burnedPercentage: burnedPercentage.toFixed(2),
-      isEffective: burnedPercentage > 95,
-    }
+  }
+  return {
+    totalLpSupply,
+    burnedAmount,
+    burnedPercentage: burnedPercentage.toFixed(2),
+    isEffective: burnedPercentage > 95,
   }
 }
 
@@ -75,7 +75,7 @@ export async function getTopHolders(tokenAddress) {
   const tenPercent = (top10supply / totalSupplyAmount) * 100
 
   return {
-    top10Holders: top10.map((acc) => ({
+    top10Holders: top10WithOwners.map((acc) => ({
       address: acc.address.toString(),
       balance: acc.amount,
     })),
@@ -97,12 +97,12 @@ export async function getHolderConditions(tokenAddress) {
         ...(cursor ? { cursor } : {}),
       },
     }
-    const res = await fetch(url, {
+    const res = await fetch(RPC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-
+    const data = await res.json()
     const accounts = data.result?.token_accounts ?? []
     if (account.length === 0) break
 
