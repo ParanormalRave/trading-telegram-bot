@@ -166,7 +166,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
       return
     }
 
-    const priceHistory = await getPriceHistory(priceHistory, config.timeframe, config.aggregate, config.limit)
+    const priceHistory = await getPriceHistory(poolAddress, config.timeframe, config.aggregate, config.limit)
     if (!priceHistory || priceHistory === 0) {
       await ctx.answerCbQuery('No data for that time frame ')
       return
