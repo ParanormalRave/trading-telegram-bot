@@ -34,14 +34,14 @@ export async function getMode(chatId){
 }
 
 export async function setPendingChart(chatId, poolAddress){
-  await redis.set(`chart: ${chatId}`, poolAddress, {ex: TTL})
+  return await redis.set(`chart: ${chatId}`, poolAddress, {ex: TTL})
 }
 
 export async function getPendingChart(chatId){
-  await redis.get(`chart: ${chatId}`)
+  return await redis.get(`chart: ${chatId}`)
 }
 
 export async function setMode(chatId, mode){
-  await redis.set(`mode:${chatId}`, mode)
+  return await redis.set(`mode:${chatId}`, mode)
 }
 

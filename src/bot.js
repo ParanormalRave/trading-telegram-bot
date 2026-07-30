@@ -151,11 +151,11 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     const poolAddress = await getPendingChart(ctx.chat.id)
 
     const tfMap = {
-      '5m': { timeframe: 'minute', aggregate: 5, limit: 100 },
-      '15m': { timeframe: 'minute', aggregate: 15, limit: 100 },
-      '1h': { timeframe: 'hour', aggregate: 1, limit: 100 },
-      '4h': { timeframe: 'hour', aggregate: 4, limit: 100 },
-      '1d': { timeframe: 'day', aggregate: 1, limit: 30 },
+      '5m': { timeframe: 'minute', aggregate: 5, limit: 300 },
+      '15m': { timeframe: 'minute', aggregate: 15, limit: 300 },
+      '1h': { timeframe: 'hour', aggregate: 1, limit: 300 },
+      '4h': { timeframe: 'hour', aggregate: 4, limit: 300 },
+      '1d': { timeframe: 'day', aggregate: 1, limit: 90 },
     }
 
     const config = tfMap[timeframe]
