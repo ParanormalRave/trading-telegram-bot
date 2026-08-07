@@ -239,9 +239,9 @@ async function handleTradingInput(ctx) {
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       await setPendingChart(ctx.chat.id, info.pairAddress)
       const [authority, holders, holderCount] = await promise.all([
-        getTokenAuthority(text).catch(() => null)
-        getTopHolders(text).catch(() => null)
-        getHolderConditions(text).catch(() => null)
+        getTokenAuthority(text).catch(() => null),
+        getTopHolders(text).catch(() => null),
+        getHolderConditions(text).catch(() => null),
       ])
 
       const mintStatus = (await authority?.isMintable) ? '⚠ warning' : '✔ Renounced'
