@@ -13,7 +13,7 @@ import {
 } from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
-import { connection, getTokenAuthority, getTopHolders, getHolderConditions} from './lib/solana.js'
+import { connection, getTokenAuthority, getTopHolders, getHolderConditions } from './lib/solana.js'
 import { generateCandleStickChart } from './lib/quickchart.js'
 import { getPriceHistory } from './lib/dexscreener.js'
 
@@ -166,7 +166,12 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
       return
     }
 
-    const priceHistory = await getPriceHistory(poolAddress, config.timeframe, config.aggregate, config.limit)
+    const priceHistory = await getPriceHistory(
+      poolAddress,
+      config.timeframe,
+      config.aggregate,
+      config.limit,
+    )
     if (!priceHistory || priceHistory.length === 0) {
       await ctx.answerCbQuery('No data for that time frame ')
       return
@@ -177,6 +182,8 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     await ctx.editMessageMedia({
       type: 'photo',
       media: chatUrl,
+      caption: message,
+      parse_mode: 'Markdown',
     })
   } catch (err) {
     console.error('Timeframe switch failed:', err)
@@ -264,10 +271,8 @@ async function handleTradingInput(ctx) {
               Markup.button.callback('5M', 'tf_5m'),
               Markup.button.callback('15M', 'tf_15m'),
               Markup.button.callback('1H', 'tf_1h'),
-            ],  
-            [
-              Markup.button.callback('4H', 'tf_4h'), 
-              Markup.button.callback('1D', 'tf_1d')],
+            ],
+            [Markup.button.callback('4H', 'tf_4h'), Markup.button.callback('1D', 'tf_1d')],
           ]),
         })
       }
