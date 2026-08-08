@@ -10,6 +10,8 @@ import {
   setMode,
   getPendingChart,
   setPendingChart,
+  getChartState,
+  setChartState
 } from './lib/session.js'
 import { getTokenInfoWithFallback } from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
@@ -146,6 +148,7 @@ bot.action('mode_chat', async (ctx) => {
 })
 
 bot.action(/^tf_(.+)$/, async (ctx) => {
+  getChartState()
   try {
     const timeframe = ctx.match[1]
     const poolAddress = await getPendingChart(ctx.chat.id)
@@ -265,6 +268,13 @@ async function handleTradingInput(ctx) {
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
         const chartUrl = await generateCandleStickChart(priceHistory)
+        const priceChangeEmoji = info.priceChaneg24h >= 0? '🟢' : '🔴'
+        await setChartState(ctx.chat.id, {
+          symbol: info.symbol,
+          current: info.current,
+          PriceChangeEmoji,
+          priceChangePercent: info.priceChange24h,
+        })
         return ctx.replyWithPhoto(chartUrl, {
           caption: message,
           parse_mode: 'Markdown',
@@ -278,6 +288,7 @@ async function handleTradingInput(ctx) {
           ]),
         })
       }
+      
 
       return ctx.replyWithMarkdown(message)
     } else {

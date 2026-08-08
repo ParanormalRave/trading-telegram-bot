@@ -45,3 +45,19 @@ export async function setMode(chatId, mode){
   await redis.set(`mode:${chatId}`, mode)
 }
 
+export async function setChartState(chatId, state) {
+  await redis.set(`chartState:${chatId}`, JSON.stringify(state), { ex: 3600 }); // 1hr expiry
+}
+
+export async function getChartState(chatId) {
+  try {
+    const data = await redis.get(`chartState:${chatId}`)
+    if (typeof data === 'object' && data !== null) {
+      return data
+    }
+    return data ? JSON.parse(data) : null
+  } catch (error) {
+    console.error(`Error parsing chartState for ${chatId}`, error)
+    return null
+  }
+}
