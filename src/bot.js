@@ -176,7 +176,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
       await ctx.answerCbQuery('No data for that time frame ')
       return
     }
-
+    const message = `📊 *${symbol}* — ${timeframe}\nPrice: $${currentPrice}\n${priceChangeEmoji} ${priceChangePercent}%`;
     const chatUrl = await generateCandleStickChart(priceHistory)
     await ctx.answerCbQuery()
     await ctx.editMessageMedia({
