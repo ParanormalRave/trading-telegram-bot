@@ -22,23 +22,26 @@ export async function generateCandleStickChart(priceHistory) {
     },
     options: {
       scales: {
-        x: {
-          type: 'time', 
-          time: { unit: 'hour' },
-          grid: { display: false },
-          ticks: { color: '#cccccc' },
-        },
-        y: {
-          type: 'linear',
-          grid: { display: false},
-          ticks: { color: '#cccccc' },
-        },
+        x: { type: 'time', time: { unit: 'hour' }, grid: { display: false }, ticks: { color: '#cccccc' } },
+        y: { type: 'linear', grid: { display: false }, ticks: { color: '#cccccc' } },
       },
     },
     backgroundColor: '#131722',
   }
-  const url = `https://quickchart.io/chart?v=3&w=600&h=400&c=${encodeURIComponent(JSON.stringify(chartConfig))}`
-  console.log(url)
+
+  const response = await fetch('https://quickchart.io/chart/create', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      version: '3',
+      width: 600,
+      height: 400,
+      chart: chartConfig,
+    }),
+  })
+
+  const data = await response.json()
+  console.log('Short chart URL:', data.url)
   console.log(`Price History: ${priceHistory?.length}`)
-  return url
+  return data.url
 }
