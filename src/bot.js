@@ -271,7 +271,7 @@ async function handleTradingInput(ctx) {
         const priceChangeEmoji = info.priceChange24h >= 0? '🟢' : '🔴'
         await setChartState(ctx.chat.id, {
           symbol: info.symbol,
-          current: info.priceUsd,
+          currentPrice: info.priceUsd,
           priceChangeEmoji,
           priceChangePercent: info.priceChange24h,
         })
