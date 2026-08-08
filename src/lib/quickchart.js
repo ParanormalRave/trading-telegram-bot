@@ -29,7 +29,7 @@ export async function generateCandleStickChart(priceHistory) {
     backgroundColor: '#131722',
   }
 
-  const response = await fetch('https://quickchart.io/chart/render/zf-0a2e1940-f861-4fb3-90cd-ea8a7e5fdbcc', {
+  const response = await fetch('https://quickchart.io/chart/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
