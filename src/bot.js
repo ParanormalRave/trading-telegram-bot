@@ -267,7 +267,7 @@ async function handleTradingInput(ctx) {
     `.trim()
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
-        const chartUrl = await generateCandleStickChart(priceHistory)
+        const chartBuffer = await generateCandleStickChart(priceHistory)
         const priceChangeEmoji = info.priceChange24h >= 0? '🟢' : '🔴'
         await setChartState(ctx.chat.id, {
           symbol: info.symbol,
