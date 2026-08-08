@@ -22,7 +22,7 @@ export async function generateCandleStickChart(priceHistory) {
         y: { type: 'linear', grid: { display: false }, ticks: { color: '#cccccc' } },
       },
     },
-    backgroundColor: '#131722',
+    backgroundColor: '#aaacb3',
   }
 
   const response = await fetch('https://quickchart.io/chart', {
