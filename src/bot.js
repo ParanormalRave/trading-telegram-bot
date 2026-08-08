@@ -184,7 +184,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
 
     const chatUrl = await generateCandleStickChart(priceHistory)
     await ctx.answerCbQuery()
-    await ctx.editMessageMedia({
+    await ctx.replyWithPhoto({
       type: 'photo',
       media: chatUrl,
       caption: message,
