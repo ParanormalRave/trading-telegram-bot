@@ -182,11 +182,9 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     }
       const message = `📊 *${symbol}* — ${timeframe}\nPrice: $${currentPrice}\n${priceChangeEmoji} ${priceChangePercent}%`;
 
-    const chatUrl = await generateCandleStickChart(priceHistory)
+    const chartBuffer = await generateCandleStickChart(priceHistory)
     await ctx.answerCbQuery()
-    await ctx.replyWithPhoto({
-      type: 'photo',
-      media: chatUrl,
+    await ctx.replyWithPhoto({ source: chartBuffer }, {
       caption: message,
       parse_mode: 'Markdown',
     })
@@ -270,14 +268,14 @@ async function handleTradingInput(ctx) {
       const priceHistory = await getPriceHistory(info.pairAddress).catch(() => null)
       if (priceHistory && priceHistory.length > 0) {
         const chartUrl = await generateCandleStickChart(priceHistory)
-        const priceChangeEmoji = info.priceChaneg24h >= 0? '🟢' : '🔴'
+        const priceChangeEmoji = info.priceChange24h >= 0? '🟢' : '🔴'
         await setChartState(ctx.chat.id, {
           symbol: info.symbol,
-          current: info.current,
+          current: info.priceUsd,
           priceChangeEmoji,
           priceChangePercent: info.priceChange24h,
         })
-        return ctx.replyWithPhoto(chartUrl, {
+        return ctx.replyWithPhoto({source: chartBuffer}, {
           caption: message,
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard([

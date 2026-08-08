@@ -12,11 +12,7 @@ export async function generateCandleStickChart(priceHistory) {
             l: c.low,
             c: c.close,
           })),
-          color: {
-            up: '#3dd4df',
-            down: '#160302',
-            unchanged: '#999999',
-          },
+          color: { up: '#3dd4df', down: '#160302', unchanged: '#999999' },
         },
       ],
     },
@@ -29,19 +25,12 @@ export async function generateCandleStickChart(priceHistory) {
     backgroundColor: '#131722',
   }
 
-  const response = await fetch('https://quickchart.io/chart/create', {
+  const response = await fetch('https://quickchart.io/chart', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      version: '3',
-      width: 600,
-      height: 400,
-      chart: chartConfig,
-    }),
+    body: JSON.stringify({ version: '3', width: 600, height: 400, backgroundColor: '#131722', chart: chartConfig }),
   })
 
-  const data = await response.json()
-  console.log('Short chart URL:', data.url)
-  console.log(`Price History: ${priceHistory?.length}`)
-  return data.url
+  const arrayBuffer = await response.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
