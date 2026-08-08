@@ -238,7 +238,7 @@ async function handleTradingInput(ctx) {
       const info = await getTokenInfoWithFallback(text)
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       await setPendingChart(ctx.chat.id, info.pairAddress)
-      const [authority, holders, holderCount] = await promise.all([
+      const [authority, holders, holderCount] = await Promise.all([
         getTokenAuthority(text).catch(() => null),
         getTopHolders(text).catch(() => null),
         getHolderConditions(text).catch(() => null),
