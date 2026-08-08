@@ -34,6 +34,8 @@ export async function getTokenInfoWithFallback(address) {
   const data = await res.json()
   const attrs = data?.data?.attributes
 
+    const topPoolId = data?.data?.relationships?.top_pools?.data?.[0]?.id
+  const poolAddress = topPoolId ? topPoolId.split('_')[1] : null // ids look like "solana_<poolAddress>"
   return {
     name: attrs?.name,
     symbol: attrs?.symbol,
