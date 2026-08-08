@@ -274,7 +274,7 @@ async function handleTradingInput(ctx) {
         await setChartState(ctx.chat.id, {
           symbol: info.symbol,
           current: info.current,
-          PriceChangeEmoji,
+          priceChangeEmoji,
           priceChangePercent: info.priceChange24h,
         })
         return ctx.replyWithPhoto(chartUrl, {
