@@ -148,10 +148,10 @@ bot.action('mode_chat', async (ctx) => {
 })
 
 bot.action(/^tf_(.+)$/, async (ctx) => {
-  getChartState()
   try {
     const timeframe = ctx.match[1]
     const poolAddress = await getPendingChart(ctx.chat.id)
+    const chartState = await getChartState(ctx.chat.id)
 
     const tfMap = {
       '5m': { timeframe: 'minute', aggregate: 5, limit: 300 },
@@ -164,11 +164,12 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     const config = tfMap[timeframe]
     if (!config) return ctx.answerCbQuery('Unknown timeframe')
 
-    if (!poolAddress) {
+    if (!poolAddress || !chartState) {
       await ctx.answerCbQuery('session expired, paste the address again')
       return
     }
-
+    const { symbol, currentPrice, priceChangeEmoji, priceChangePercent } = chartState
+    
     const priceHistory = await getPriceHistory(
       poolAddress,
       config.timeframe,
@@ -179,7 +180,8 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
       await ctx.answerCbQuery('No data for that time frame ')
       return
     }
-    const message = `📊 *${symbol}* — ${timeframe}\nPrice: $${currentPrice}\n${priceChangeEmoji} ${priceChangePercent}%`;
+      const message = `📊 *${symbol}* — ${timeframe}\nPrice: $${currentPrice}\n${priceChangeEmoji} ${priceChangePercent}%`;
+
     const chatUrl = await generateCandleStickChart(priceHistory)
     await ctx.answerCbQuery()
     await ctx.editMessageMedia({
