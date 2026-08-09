@@ -36,6 +36,7 @@ export async function checkLiquidityBurnStatus(lpMintAddress) {
 
   const largestAccount = await connection.getTokenLargestAccounts(lpMintPublicKey)
   let burnedAmount = 0
+  let burnedPercentage = 0 // FIX: declared outside the loop so it survives past it
 
   for (const account of largestAccount.value) {
     const accountInfo = await connection.getParsedAccountInfo(account.address)
@@ -44,9 +45,11 @@ export async function checkLiquidityBurnStatus(lpMintAddress) {
     if (KNOWN_BURN_ADDRESSES.includes(owner)) {
       burnedAmount += Number(account.amount)
     }
-
-    const burnedPercentage = (burnedAmount / totalLpSupply) * 100
   }
+
+  // FIX: percentage calculated once after the loop, using the final burnedAmount
+  burnedPercentage = (burnedAmount / totalLpSupply) * 100
+
   return {
     totalLpSupply,
     burnedAmount,
@@ -86,11 +89,12 @@ export async function getTopHolders(tokenAddress) {
 export async function getHolderConditions(tokenAddress) {
   let cursor = null
   const owners = new Set()
+
   while (true) {
     const body = {
-      jsonprc: '2.0',
+      jsonrpc: '2.0', // FIX: was "jsonprc" (typo, invalid JSON-RPC field name)
       id: 'holder account',
-      method: 'getTokensAccount',
+      method: 'getTokenAccounts', // FIX: was "getTokensAccount" (not a real Helius method)
       params: {
         mint: tokenAddress,
         limit: 1000,
@@ -104,9 +108,12 @@ export async function getHolderConditions(tokenAddress) {
     })
     const data = await res.json()
     const accounts = data.result?.token_accounts ?? []
-    if (account.length === 0) break
+
+    if (accounts.length === 0) break // FIX: was "account.length" (undefined variable)
 
     for (const acc of accounts) owners.add(acc.owner)
+
+    cursor = data.result?.cursor // FIX: cursor was never updated, so pagination never advanced
     if (!cursor) break
   }
   return owners.size

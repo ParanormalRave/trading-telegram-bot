@@ -247,8 +247,8 @@ async function handleTradingInput(ctx) {
         getHolderConditions(text).catch(() => null),
       ])
 
-      const mintStatus = (await authority?.isMintable) ? '⚠ warning' : '✔ Renounced'
-      const freezeStatus = (await authority?.isFreezable) ? '⚠ warning' : '✔ Renounced'
+      const mintStatus = authority === null ? 'Unknown': authority.isMintable ? '⚠ warning' : '✔ Renounced'
+      const freezeStatus = authority === null ? 'Unknown': authority.isFreezable ? '⚠ warning' : '✔ Renounced'
       const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
       const message = `
       📊 *${info.name}* (${info.symbol})
