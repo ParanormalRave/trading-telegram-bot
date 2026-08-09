@@ -20,6 +20,8 @@ export async function getTokenAuthority(tokenAddress) {
     isMintable: mintInfo.mintAuthority !== null,
     freezeAuthority: mintInfo.freezeAuthority ? mintInfo.freezeAuthority.toString() : null,
     isFreezable: mintInfo.freezeAuthority !== null,
+    currentSupply: mintInfo.supply.toString(),
+    decimals: mintInfo.decimals
   }
 }
 
