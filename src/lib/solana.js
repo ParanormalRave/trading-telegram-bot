@@ -23,7 +23,7 @@ export async function getTokenAuthority(tokenAddress) {
     currentSupply: mintInfo.supply.toString(),
     decimals: mintInfo.decimals
   }
-}
+}   
 
 const KNOWN_BURN_ADDRESSES = [
   '1nc1nerator11111111111111111111111111111111',

@@ -242,9 +242,9 @@ async function handleTradingInput(ctx) {
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
       await setPendingChart(ctx.chat.id, info.pairAddress)
       const [authority, holders, holderCount] = await Promise.all([
-        getTokenAuthority(text).catch(() => null),
-        getTopHolders(text).catch(() => null),
-        getHolderConditions(text).catch(() => null),
+        getTokenAuthority(text).catch((err) => {console.error('mint and freeze failed', err.message) return null}),
+        getTopHolders(text).catch((err) => {console.error('Get top holders failed ', err.message) return null}),
+        getHolderConditions(text).catch((err) => {console.error('get holders failed', err.message) return null}),
       ])
 
       const mintStatus = authority === null ? 'Unknown': authority.isMintable ? '⚠ warning' : '✔ Renounced'
