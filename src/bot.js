@@ -98,6 +98,7 @@ You are sharp, reliable, slightly playful, and confident.
 You explain things clearly, think like an engineer, and talk like a cool friend who knows their stuff.
 
 `
+const OwnerId = 6501132100;
 const dates = new Date()
 const hours = dates.getHours()
 let time
@@ -108,7 +109,15 @@ if (hours < 12) {
 } else {
   time = 'Evening'
 }
-bot.start((ctx) => ctx.reply(`Good ${time} Rave-kun 😒`))
+let name;
+bot.start((ctx) => ctx.reply(`Good ${time} ${name === OwnerId ? 'Rave': 'Stranger 👀'} 😒`))
+
+bot.use((ctx, next) => {
+  if (ctx.from?.id !== OwnerId){
+    return 'this is not from Rave Access Denied'
+  }
+  return next()
+})
 
 bot.command('reset', async (ctx) => {
   await clearSession(ctx.chat.id)
