@@ -109,8 +109,6 @@ if (hours < 12) {
 } else {
   time = 'Evening'
 }
-let name = ctx.from?.id;
-bot.start((ctx) => ctx.reply(`Good ${time} ${name === OwnerId ? 'Rave': 'Stranger 👀'} 😒`))
 
 bot.use((ctx, next) => {
   let name = ctx.from?.id;
