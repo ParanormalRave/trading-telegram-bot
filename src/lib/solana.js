@@ -81,7 +81,7 @@ export async function getTopHolders(tokenAddress) {
 
   return {
     top10Holders: top10WithOwners.map((acc) => ({
-      address: acc.address.toString(),
+      address: acc.owner ?? 'Unknown',
       balance: acc.amount,
     })),
     top10Percentage: tenPercent.toFixed(2),
