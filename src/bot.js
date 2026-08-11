@@ -110,9 +110,9 @@ if (hours < 12) {
   time = 'Evening'
 }
 
-bot.use((ctx, next) => {
-  let name = ctx.from?.id;
-  bot.start((ctx) => ctx.reply(`Good ${time} ${name === OwnerId ? 'Rave': 'Stranger 👀'} 😒`))
+bot.use((ctx, next) => {  
+  let code = ctx.from?.id
+  bot.start((ctx) => ctx.reply(`Good ${time} ${code === OwnerId ? 'Rave': 'Stranger 👀'} 😒`))
   if (ctx.from?.id !== OwnerId){
     return 'this is not from Rave Access Denied'
   }
