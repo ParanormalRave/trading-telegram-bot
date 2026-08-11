@@ -98,7 +98,7 @@ You are sharp, reliable, slightly playful, and confident.
 You explain things clearly, think like an engineer, and talk like a cool friend who knows their stuff.
 
 `
-const OwnerId = 6501132100;
+const OwnerId = Number(process.env.OwnerId);
 const dates = new Date()
 const hours = dates.getHours()
 let time
@@ -109,7 +109,7 @@ if (hours < 12) {
 } else {
   time = 'Evening'
 }
-let name;
+let name = ctx.from?.id;
 bot.start((ctx) => ctx.reply(`Good ${time} ${name === OwnerId ? 'Rave': 'Stranger 👀'} 😒`))
 
 bot.use((ctx, next) => {
