@@ -255,6 +255,9 @@ async function handleTradingInput(ctx) {
     if (solanaAddressRegex.test(text)) {
       const info = await getTokenInfoWithFallback(text)
       if (!info) return ctx.reply('Damn....urgh no data found for this address')
+      if (!info.pairAddress){
+        return ctx.reply('Found the token, but no pool address available — chart won\'t work for this one')
+      }
       await setPendingChart(ctx.chat.id, info.pairAddress)
       const [authority, holders, holderCount] = await Promise.all([
         getTokenAuthority(text).catch((err) => {console.error('mint and freeze failed', err.message); return null}),
