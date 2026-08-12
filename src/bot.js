@@ -112,6 +112,7 @@ if (hours < 12) {
 
 bot.use((ctx, next) => {
   const isOwner = ctx.from?.id === OwnerId
+  console.log(OwnerId)
 
   if (ctx.message?.text === '/start') {
     return ctx.reply(`Good ${time} ${isOwner ? 'Rave' : 'Stranger 👀'} 😒`)
