@@ -226,9 +226,28 @@ bot.on('message', async (ctx) => {
     const history = await getSession(chatId)
     history.push({ role: 'user', content: userMessage })
     const result = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: "openai/gpt-oss-120b",
       messages: [{ role: 'system', content: systemPrompt }, ...history],
     })
+
+    function splitMessage(text, maxLength = 4096) {
+      const chunks = [];
+      let remainingText = text;
+      while (remainingText.length > maxLength) {
+        let splitIndex = remainingText.lastIndexOf('\n', maxLength);
+        if (splitIndex === -1) {
+          splitIndex = maxLength;
+        }
+        chunks.push(remainingText.slice(0, splitIndex));
+        remainingText = remainingText.slice(splitIndex);
+      }
+      if (remainingText.length > 0) {
+        chunks.push(remainingText);
+      }
+      return chunks;
+    }
+
+
 
     const response = result.choices[0].message.content
     const tokenUsed = result.usage.completion_tokens
@@ -240,7 +259,10 @@ bot.on('message', async (ctx) => {
     saveMessagesToPostgres(chatId, 'assistant', response, tokenUsed).catch((err) =>
       console.error('Failed to save messages:', err),
     )
-    await ctx.reply(response)
+    const messageChunks = splitMessage(response)
+    for (const chunk of messageChunks) {
+      await ctx.reply(chunk)
+    }
   } catch (error) {
     await ctx.reply('Sorry love, something went wrong')
     console.error('Full error:', error.message)
