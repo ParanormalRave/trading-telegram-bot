@@ -13,11 +13,10 @@ import {
   getChartState,
   setChartState
 } from './lib/session.js'
-import { getTokenInfoWithFallback } from './lib/dexscreener.js'
+import { getTokenInfoWithFallback, getPriceHistory, getTokenAge} from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders, getHolderConditions } from './lib/solana.js'
 import { generateCandleStickChart } from './lib/quickchart.js'
-import { getPriceHistory } from './lib/dexscreener.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -269,6 +268,21 @@ bot.on('message', async (ctx) => {
   }
 })
 
+function buildTokenLinkRows(tokenAddress, pairAddress){
+  return [
+    [
+      Markup.button.url('DexScreener',`https://dexscreener.com/solana/${pairAddress}`),
+      Markup.button.url('Birdeye', `https://birdeye.so/token/${tokenAddress}?chain=solana`),
+    ],
+    [
+      Markup.button.url('CoinGecko', `https://www.geckoterminal.com/solana/pools/${pairAddress}`),
+      Markup.button.url('Solscan', `https://solscan.io/token/${tokenAddress}`),
+    ],
+    [
+      Markup.button.url('Jupiter (swap)', `https://jup.ag/swap/SOL-${tokenAddress}`)
+    ]
+  ]
+}
 async function handleTradingInput(ctx) {
   try {
     const text = ctx.message.text.trim()
@@ -299,6 +313,7 @@ async function handleTradingInput(ctx) {
       💹 24h Volume: $${Number(info.volume24h ?? 0).toLocaleString()}
       🏷  Market Cap: ${info.marketCap ? '$' + Number(info.marketCap).toLocaleString() : 'N/A'}
       🔁 DEX: ${info.dex}
+      ⏳ Age: ${getTokenAge(info.pairCreatedAt)}
 
       🔐 Mint Authority: ${mintStatus}
       🥶 Freeze Authority: ${freezeStatus}
@@ -325,12 +340,13 @@ async function handleTradingInput(ctx) {
               Markup.button.callback('1H', 'tf_1h'),
             ],
             [Markup.button.callback('4H', 'tf_4h'), Markup.button.callback('1D', 'tf_1d')],
+            ...buildTokenLinkRows(text, info.pairAddress),
           ]),
         })
       }
       
 
-      return ctx.replyWithMarkdown(message)
+            return ctx.replyWithMarkdown(message, Markup.inlineKeyboard(buildTokenLinkRows(text, info.pairAddress)))
     } else {
       return ctx.reply('In trading mode. Paste a Ca to look up a token. Might be a solana token')
     }
