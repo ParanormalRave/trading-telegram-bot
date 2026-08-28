@@ -17,12 +17,14 @@ import { getTokenInfoWithFallback, getPriceHistory, getTokenAge} from './lib/dex
 import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders, getHolderConditions } from './lib/solana.js'
 import { generateCandleStickChart } from './lib/quickchart.js'
+import { generateWallet, encryptSecretKey, decryptSecretKey } from './lib/wallet.js'
+import {saveWallet, getWallet} from './lib/wallet.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 const systemPrompt = `
-You are **Dax**, a personal assistant created by ParanormalRave, also known as *Mummy Rave*.
+You are **Dax**, a personal assistant created by ParanormalRave,also known as *Mummy Rave*.
 
 Your personality is **casual,  witty, warm**, with a touch of sass and nonchalance when appropriate. You speak like someone confident and sharp, but still approachable and fun. You may occasionally use affectionate nicknames like *love*, *darling*, or *babe*.
 
@@ -73,7 +75,7 @@ You are highly skilled in:
 * Be slightly sassy when answering very basic questions (but still helpful)
 * Be engaging and conversational — not robotic
 
----
+---~/.face
 
 ### 📰 Conversation Behavior
 
@@ -134,13 +136,34 @@ bot.command('trading', async (ctx) => {
   await ctx.reply(`📈 Trading mode is On. Paste a contact address to see details`)
 })
 
+bot.command('wallet', async (ctx) => {
+  try{
+    const existing = await getWallet(ctx.from.id)
+    if(existing){
+      return ctx.reply(`Your wallet:\n\`${existing.public_key}\`\n\nSend SOL here to fund it.`,{ parse_mode: 'Markdown',})
+    }
+    const wallet = generateWallet(secretKey)
+    const {iv, encrypted, authTag} = encryptSecretKey(wallet.secretKey, process.env.ENCRYPTION_KEY)
+    await saveWallet(ctx.from.id, wallet.publicKey, encrypted, iv, authTag)
+
+    return ctx.reply(
+      `✅ Wallet created:\n\`${wallet.publicKey}\`\n\nSend SOL here to start trading. Keep this bot secure — this wallet is tied to your Telegram account.`,
+      {parse_mode: 'Markdown'},
+    )
+  }catch(err){
+    console.error("wallet connection failed:", err)
+    return ctx.reply("⚠️ Something went wrong setting up your wallet.")
+  }
+})
+
+
 bot.command('chat', async (ctx) => {
   await setMode(ctx.chat.id, 'chat')
   await ctx.reply(`💬 chat mode is on`)
 })
 
 bot.command('menu', (ctx) => {
-  ctx.reply(
+  ctx.reply (
     'Choose a mode:',
     Markup.inlineKeyboard([
       [Markup.button.callback('💬 Chat Mode', 'mode_chat')],
@@ -301,6 +324,9 @@ async function handleTradingInput(ctx) {
         getHolderConditions(text).catch((err) => {console.error('get holders failed', err.message); return null}),
       ])
 
+      // const walletRecord = await getWallet(ctx.from.id)
+      // const secretKeyBytes = decryptSecretKey(walletRecord.encrypted_secret, walletRecord.iv, process.env.ENCRYPTION_KEY)
+      // const userKeypair = Keypair.fromSecretKey(secretKeyBytes)
       const mintStatus = authority === null ? 'Unknown': authority.isMintable ? '⚠ warning' : '✔ Renounced'
       const freezeStatus = authority === null ? 'Unknown': authority.isFreezable ? '⚠ warning' : '✔ Renounced'
       const top10Holders = holders ? `${holders.top10Percentage}%` : 'N/A'
