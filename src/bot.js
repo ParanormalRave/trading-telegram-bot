@@ -18,7 +18,7 @@ import { saveMessagesToPostgres } from './lib/conversations.js'
 import { connection, getTokenAuthority, getTopHolders, getHolderConditions } from './lib/solana.js'
 import { generateCandleStickChart } from './lib/quickchart.js'
 import { generateWallet, encryptSecretKey, decryptSecretKey } from './lib/wallet.js'
-import {saveWallet, getWallet} from './lib/wallet.js'
+import {saveWallet, getWallet} from './lib/walletDb.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
