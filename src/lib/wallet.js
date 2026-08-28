@@ -12,7 +12,7 @@ export const generateWallet = () => {
     const keypair = Keypair.generate()
     return{
         publicKey: keypair.publicKey.toString(),
-        secretKey: keypair.secretKey
+        secretKey: keypair.secretKey.toString()
     }
 }
 
