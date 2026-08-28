@@ -1,4 +1,4 @@
-import { db } from "./postgres"
+import { db } from "./postgres.js"
 export async function saveWallet(telegramUserId, publicKey, encryptedSecret, iv, authTag){
     await db.query(
         'INSERT INTO wallets (telegram_user_id, public_key, encrypted_secret, iv, auth_tag) VALUES ($1, $2, $3, $4, $5) ',
