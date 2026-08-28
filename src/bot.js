@@ -142,8 +142,8 @@ bot.command('wallet', async (ctx) => {
     if(existing){
       return ctx.reply(`Your wallet:\n\`${existing.public_key}\`\n\nSend SOL here to fund it.`,{ parse_mode: 'Markdown',})
     }
-    const wallet = generateWallet(secretKey)
-    const {iv, encrypted, authTag} = encryptSecretKey(wallet.secretKey, process.env.ENCRYPTION_KEY)
+    const wallet = generateWallet()
+    const {iv, encrypted, authTag} = encryptSecretKey(wallet.secretKey)
     await saveWallet(ctx.from.id, wallet.publicKey, encrypted, iv, authTag)
 
     return ctx.reply(

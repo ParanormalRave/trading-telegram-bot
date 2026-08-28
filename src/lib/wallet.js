@@ -18,9 +18,9 @@ export const generateWallet = () => {
 
 export function encryptSecretKey(secretKey){
     const iv = crypto.randomBytes(12)
-    const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY)
+    const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv)
     const encrypted = Buffer.concat([cipher.update(Buffer.from(secretKey)),cipher.final()])
-    const authTag = cipher.getAuthTag
+    const authTag = cipher.getAuthTag()
 
     return{
         iv: iv.toString('hex'),
