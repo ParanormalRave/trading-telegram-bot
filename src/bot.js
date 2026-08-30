@@ -19,6 +19,7 @@ import { connection, getTokenAuthority, getTopHolders, getHolderConditions } fro
 import { generateCandleStickChart } from './lib/quickchart.js'
 import { generateWallet, encryptSecretKey, decryptSecretKey } from './lib/wallet.js'
 import {saveWallet, getWallet} from './lib/walletDb.js'
+import { getPaperBalance, paperBuy, getPaperPositions, paperSell } from './lib/paperTrading.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -156,6 +157,51 @@ bot.command('wallet', async (ctx) => {
   }
 })
 
+bot.command('balance', async(ctx) =>{
+  const balance = await getPendingCharts(ctx.from.id)
+  return ctx.reply(`Paper balance: ${balance.toFixed(4)} SOL`)  
+})
+
+bot.command('buy', async(ctx) =>{
+  try{
+    const poolAddress = await getPendingChart(ctx.chat)
+    if(!poolAddress) return ctx.reply("Paste a token address first")
+
+    const info = await getTokenInfoWithFallback(poolAddress)
+    if (!info) return ctx.reply('Could not find Data')
+    
+    const solAmount = 0.5
+    const solPriceUsd = 150
+
+    const result = await paperBuy(ctx.from.id, poolAddress, info.symbol, solAmount, info.priceUsd, solPriceUsd)
+
+    return ctx.reply(
+        `📝 Paper BUY: ${result.tokensReceived.toFixed(2)} ${info.symbol}\nSpent: ${solAmount} SOL\nNew balance: ${result.newBalance.toFixed(4)} SOL`
+    )
+    
+  }catch(err){
+    return ctx.reply(`⚠️ ${err.message}`)
+  }
+})
+
+
+bot.command('positions', async(ctx)=> {
+  const positions = await getPaperPositions(ctx.from.id)
+  if(positions.length === 0 ) return ctx.reply('No open paper position') 
+})
+
+bot.command('sell', async(ctx)=>{
+  try{
+    const positionId = ctx.message.text.split(' ')[1]
+    if (!positionId) return ctx.reply ('Use: /sell <position id> — check /positions for IDs')
+    const solPriceUsd = 150
+    
+    const result = await paperSell(ctx.from.id, Number(positionId), currentPriceUsd, solPriceUsd)
+    return ctx.reply(`📃 paper SELL complete\nReceived: ${result.solReceived.toFixed(4)} SOL \n P&L: $${result.pnlUsd.toFixed(2)}`)
+  }catch(err){
+    return ctx.reply(`⚠️ ${err.message}`)
+  }
+})
 
 bot.command('chat', async (ctx) => {
   await setMode(ctx.chat.id, 'chat')
@@ -168,6 +214,7 @@ bot.command('menu', (ctx) => {
     Markup.inlineKeyboard([
       [Markup.button.callback('💬 Chat Mode', 'mode_chat')],
       [Markup.button.callback('📈 Trading Mode', 'mode_trading')],
+      [Markup.button.callback('Wallet','mode_wallet')]
     ]),
   )
 })
@@ -186,7 +233,7 @@ bot.action('mode_chat', async (ctx) => {
 
 bot.action(/^tf_(.+)$/, async (ctx) => {
   try {
-    const timeframe = ctx.match[1]
+    const timeframe = ctx.maconssttch[1]
     const poolAddress = await getPendingChart(ctx.chat.id)
     const chartState = await getChartState(ctx.chat.id)
 
