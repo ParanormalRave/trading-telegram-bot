@@ -28,10 +28,10 @@ export async function paperBuy(telegramUserId, tokenAddress, symbol, solAmount, 
 }
 
 
-// export async function getPaperBalance(telegramUserId){
-//     const result = await db.query('SELECT * FROM paper_positions WHERE telegram_user_id = $1', [telegramUserId])
-//     return result?.row || null
-// }
+export async function getPaperPositions(telegramUserId){
+    const result = await db.query('SELECT * FROM paper_positions WHERE telegram_user_id = $1', [telegramUserId])
+    return result?.rows || null
+}
 
 export async function paperSell(telegramUserId, positionId, currentPriceUsd, solPriceUsd) {
     const result = await db.query('SELECT * FROM paper_positions WHERE id = $1 AND telegram_user_id = $2', [positionId, telegramUserId])
