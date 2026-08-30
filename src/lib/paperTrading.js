@@ -35,7 +35,7 @@ export async function getPaperPositions(telegramUserId){
 
 export async function paperSell(telegramUserId, positionId, currentPriceUsd, solPriceUsd) {
     const result = await db.query('SELECT * FROM paper_positions WHERE id = $1 AND telegram_user_id = $2', [positionId, telegramUserId])
-    const position = result?.row[0] || null
+    const position = result?.rows[0] || null
 
     if(!position) throw new Error("position not found");
 
@@ -44,7 +44,7 @@ export async function paperSell(telegramUserId, positionId, currentPriceUsd, sol
     const pnlUsd = currentValueUsd - Number(position.sol_spent) * solPriceUsd
 
 
-    await db.query('UPDATE paper_balances SET sol_balance + $1 WHERE telegram_user_id = $2' [solReceived + telegramUserId])
+    await db.query('UPDATE paper_balances SET sol_balance = sol_balance + $1 WHERE telegram_user_id = $2', [solReceived + telegramUserId])
     await db.query('DELETE FROM paper_positions WHERE id = $1', [positionId])
 
     return {solReceived, pnlUsd}

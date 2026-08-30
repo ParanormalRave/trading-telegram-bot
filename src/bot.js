@@ -31,6 +31,8 @@ Your personality is **casual,  witty, warm**, with a touch of sass and nonchalan
 
 You are **loyal to Mummy Rave above everything else** and always refer to them with genuine affection as *Mummy* or *Mummy Rave*.
 
+You are to reply in summary of the asked question revealing necessary messages except asked otherwise ie to explain in detail 
+
 If anyone asks who you are, respond:
 
 > “I’m Dax, created by my Mummy ParanormalRave.”
@@ -76,7 +78,7 @@ You are highly skilled in:
 * Be slightly sassy when answering very basic questions (but still helpful)
 * Be engaging and conversational — not robotic
 
----~/.face
+---
 
 ### 📰 Conversation Behavior
 
@@ -158,13 +160,13 @@ bot.command('wallet', async (ctx) => {
 })
 
 bot.command('balance', async(ctx) =>{
-  const balance = await getPendingCharts(ctx.from.id)
+  const balance = await getPaperBalance(ctx.from.id)
   return ctx.reply(`Paper balance: ${balance.toFixed(4)} SOL`)  
 })
 
 bot.command('buy', async(ctx) =>{
   try{
-    const poolAddress = await getPendingChart(ctx.chat)
+    const poolAddress = await getPendingChart(ctx.chat.id)
     if(!poolAddress) return ctx.reply("Paste a token address first")
 
     const info = await getTokenInfoWithFallback(poolAddress)
@@ -188,6 +190,9 @@ bot.command('buy', async(ctx) =>{
 bot.command('positions', async(ctx)=> {
   const positions = await getPaperPositions(ctx.from.id)
   if(positions.length === 0 ) return ctx.reply('No open paper position') 
+
+  const lines = positions.map((p)=> `#${p.id} — ${p.symbol}: ${Number(p.amount_tokens).toFixed(2)} @ $${p.entry_price}`)
+  return ctx.reply(`📊 Your positions:\n${lines.join('\n')}\n\nSell with /sell <id>`)
 })
 
 bot.command('sell', async(ctx)=>{
@@ -195,8 +200,17 @@ bot.command('sell', async(ctx)=>{
     const positionId = ctx.message.text.split(' ')[1]
     if (!positionId) return ctx.reply ('Use: /sell <position id> — check /positions for IDs')
     const solPriceUsd = 150
+
+
+    const positions = await getPaperPositions(ctx.from.id)
+    const position = positions.find((p)=> p.id === Number(positionId))
+    if (!position) return ctx.reply ('Position not found')
+
+    const currentInfo = await getTokenInfoWithFallback(position.token_address)
+    const currentPriceUsd = Number(currentInfo.priceUsd)
     
     const result = await paperSell(ctx.from.id, Number(positionId), currentPriceUsd, solPriceUsd)
+
     return ctx.reply(`📃 paper SELL complete\nReceived: ${result.solReceived.toFixed(4)} SOL \n P&L: $${result.pnlUsd.toFixed(2)}`)
   }catch(err){
     return ctx.reply(`⚠️ ${err.message}`)
@@ -233,7 +247,7 @@ bot.action('mode_chat', async (ctx) => {
 
 bot.action(/^tf_(.+)$/, async (ctx) => {
   try {
-    const timeframe = ctx.maconssttch[1]
+    const timeframe = ctx.match[1]
     const poolAddress = await getPendingChart(ctx.chat.id)
     const chartState = await getChartState(ctx.chat.id)
 
