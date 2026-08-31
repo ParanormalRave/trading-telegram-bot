@@ -1,7 +1,7 @@
 import {db} from "./postgres.js"
 
 export async function getPaperBalance(telegramUserId){
-    const result = await db.query('SELECT sol_balance FROM paper_balance WHERE telegram_user_id = $1', [telegramUserId])
+    const result = await db.query('SELECT sol_balance FROM paper_balances WHERE telegram_user_id = $1', [telegramUserId])
     if (result?.rows?.length === 0){
         await db.query('INSERT INTO paper_balances (telegram_user_id, sol_balance) VALUES ($1, 10)', [telegramUserId])
         return 10
