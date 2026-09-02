@@ -169,7 +169,7 @@ bot.command('buy', async(ctx) =>{
     const pending = await getPendingChart(ctx.chat.id)
     if(!pending) return ctx.reply("Paste a token address first")
 
-    const info = await getTokenInfoWithFallback(poolAddress)
+    const info = await getTokenInfoWithFallback(pending.poolAddress)
     if (!info) return ctx.reply('Could not find Data')
     
     const solAmount = 0.5
@@ -182,6 +182,7 @@ bot.command('buy', async(ctx) =>{
     )
     
   }catch(err){
+    console.error("Error message:", err)
     return ctx.reply(`⚠️ ${err.message}`)
   }
 })
@@ -248,7 +249,7 @@ bot.action('mode_chat', async (ctx) => {
 bot.action(/^tf_(.+)$/, async (ctx) => {
   try {
     const timeframe = ctx.match[1]
-    const poolAddress = await getPendingChart(ctx.chat.id)
+    const pending = await getPendingChart(ctx.chat.id)
     const chartState = await getChartState(ctx.chat.id)
 
     const tfMap = {
@@ -262,7 +263,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     const config = tfMap[timeframe]
     if (!config) return ctx.answerCbQuery('Unknown timeframe')
 
-    if (!poolAddress || !chartState) {
+    if (!pending || !chartState) {
       await ctx.answerCbQuery('session expired, paste the address again')
       return
     }
