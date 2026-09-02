@@ -175,7 +175,7 @@ bot.command('buy', async(ctx) =>{
     const solAmount = 0.5
     const solPriceUsd = 150
 
-    const result = await paperBuy(ctx.from.id, poolAddress, info.symbol, solAmount, info.priceUsd, solPriceUsd)
+    const result = await paperBuy(ctx.from.id, pending.tokenAddress, info.symbol, solAmount, info.priceUsd, solPriceUsd)
 
     return ctx.reply(
         `📝 Paper BUY: ${result.tokensReceived.toFixed(2)} ${info.symbol}\nSpent: ${solAmount} SOL\nNew balance: ${result.newBalance.toFixed(4)} SOL`
@@ -269,7 +269,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     const { symbol, currentPrice, priceChangeEmoji, priceChangePercent } = chartState
     
     const priceHistory = await getPriceHistory(
-      poolAddress,
+      pending.poolAddress,
       config.timeframe,
       config.aggregate,
       config.limit,
@@ -378,7 +378,7 @@ async function handleTradingInput(ctx) {
       if (!info.pairAddress){
         return ctx.reply('Found the token, but no pool address available — chart won\'t work for this one')
       }
-      await setPendingChart(ctx.chat.id, info.pairAddress)
+      await setPendingChart(ctx.chat.id, {tokenAddress: text, pairAddress: info.pairAddress})
       const [authority, holders, holderCount] = await Promise.all([
         getTokenAuthority(text).catch((err) => {console.error('mint and freeze failed', err.message); return null}),
         getTopHolders(text).catch((err) => {console.error('Get top holders failed ', err.message); return null}),

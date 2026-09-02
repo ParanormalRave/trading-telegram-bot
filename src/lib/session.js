@@ -33,12 +33,21 @@ export async function getMode(chatId){
   return mode || `chat`
 }
 
-export async function setPendingChart(chatId, poolAddress){
-  await redis.set(`chart: ${chatId}`, poolAddress, {ex: TTL})
+export async function setPendingChart(chatId, data){
+  await redis.set(`chart: ${chatId}`, JSON.stringify(data), {ex: TTL})
 }
 
 export async function getPendingChart(chatId){
-  return await redis.get(`chart: ${chatId}`)
+  try{
+    const data = await redis.get(`chat:${chatId}`)
+    if(typeof data === 'object' && data != null){
+      return data
+    }
+    return data ? JSON.parse(data) : null
+  }catch(error){
+    console.error(`Error parsing pending chart for ${chatId}`, error)
+    return null
+  }
 }
 
 export async function setMode(chatId, mode){
