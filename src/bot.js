@@ -160,8 +160,14 @@ bot.command('wallet', async (ctx) => {
 })
 
 bot.command('balance', async(ctx) =>{
-  const balance = await getPaperBalance(ctx.from.id)
-  return ctx.reply(`Paper balance: ${balance.toFixed(4)} SOL`)  
+  try{
+    const balance = await getPaperBalance(ctx.from.id)
+    return ctx.reply(`Paper balance: ${balance.toFixed(4)} SOL`)    
+  }catch(err){
+    console.error (`Balance check failed:`, err)
+    return ctx.reply(`Could not check your balance right now`)
+  }
+  
 })
 
 bot.command('buy', async(ctx) =>{
@@ -169,7 +175,7 @@ bot.command('buy', async(ctx) =>{
     const pending = await getPendingChart(ctx.chat.id)
     if(!pending) return ctx.reply("Paste a token address first")
 
-    const info = await getTokenInfoWithFallback(pending.poolAddress)
+    const info = await getTokenInfoWithFallback(pending.pairAddress)
     if (!info) return ctx.reply('Could not find Data')
     
     const solAmount = 0.5
@@ -270,7 +276,7 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     const { symbol, currentPrice, priceChangeEmoji, priceChangePercent } = chartState
     
     const priceHistory = await getPriceHistory(
-      pending.poolAddress,
+      pending.pairAddress,
       config.timeframe,
       config.aggregate,
       config.limit,
