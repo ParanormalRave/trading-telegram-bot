@@ -166,8 +166,8 @@ bot.command('balance', async(ctx) =>{
 
 bot.command('buy', async(ctx) =>{
   try{
-    const poolAddress = await getPendingChart(ctx.chat.id)
-    if(!poolAddress) return ctx.reply("Paste a token address first")
+    const pending = await getPendingChart(ctx.chat.id)
+    if(!pending) return ctx.reply("Paste a token address first")
 
     const info = await getTokenInfoWithFallback(poolAddress)
     if (!info) return ctx.reply('Could not find Data')
