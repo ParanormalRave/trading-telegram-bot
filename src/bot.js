@@ -175,7 +175,7 @@ bot.command('buy', async(ctx) =>{
     const pending = await getPendingChart(ctx.chat.id)
     if(!pending) return ctx.reply("Paste a token address first")
 
-    const info = await getTokenInfoWithFallback(pending.pairAddress)
+    const info = await getTokenInfoWithFallback(pending.tokenAddress)
     if (!info) return ctx.reply('Could not find Data')
     
     const solAmount = 0.5
