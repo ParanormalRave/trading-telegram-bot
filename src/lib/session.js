@@ -34,12 +34,12 @@ export async function getMode(chatId){
 }
 
 export async function setPendingChart(chatId, data){
-  await redis.set(`chart: ${chatId}`, JSON.stringify(data), {ex: TTL})
+  await redis.set(`chart:${chatId}`, JSON.stringify(data), {ex: TTL})
 }
 
 export async function getPendingChart(chatId){
   try{
-    const data = await redis.get(`chat:${chatId}`)
+    const data = await redis.get(`chart:${chatId}`)
     if(typeof data === 'object' && data != null){
       return data
     }
