@@ -44,7 +44,7 @@ export async function paperSell(telegramUserId, positionId, currentPriceUsd, sol
     const pnlUsd = currentValueUsd - Number(position.sol_spent) * solPriceUsd
 
 
-    await db.query('UPDATE paper_balances SET sol_balance = sol_balance + $1 WHERE telegram_user_id = $2', [solReceived + telegramUserId])
+    await db.query('UPDATE paper_balances SET sol_balance = sol_balance + $1 WHERE telegram_user_id = $2', [solReceived, telegramUserId])
     await db.query('DELETE FROM paper_positions WHERE id = $1', [positionId])
 
     return {solReceived, pnlUsd}
