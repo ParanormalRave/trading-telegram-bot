@@ -11,7 +11,9 @@ import {
   getPendingChart,
   setPendingChart,
   getChartState,
-  setChartState
+  setChartState,
+  setAwaitingCustomAmount,
+  getAwaitingCustomAmount
 } from './lib/session.js'
 import { getTokenInfoWithFallback, getPriceHistory, getTokenAge} from './lib/dexscreener.js'
 import { saveMessagesToPostgres } from './lib/conversations.js'
@@ -19,7 +21,7 @@ import { connection, getTokenAuthority, getTopHolders, getHolderConditions } fro
 import { generateCandleStickChart } from './lib/quickchart.js'
 import { generateWallet, encryptSecretKey, decryptSecretKey } from './lib/wallet.js'
 import {saveWallet, getWallet} from './lib/walletDb.js'
-import { getPaperBalance, paperBuy, getPaperPositions, paperSell } from './lib/paperTrading.js'
+import { getPaperBalance, paperBuy, getPaperPositions, paperSellPercentage } from './lib/paperTrading.js'
 
 export const bot = new Telegraf(process.env.BOT_TOKEN)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
@@ -170,29 +172,6 @@ bot.command('balance', async(ctx) =>{
   
 })
 
-bot.command('buy', async(ctx) =>{
-  try{
-    const pending = await getPendingChart(ctx.chat.id)
-    if(!pending) return ctx.reply("Paste a token address first")
-
-    const info = await getTokenInfoWithFallback(pending.tokenAddress)
-    if (!info) return ctx.reply('Could not find Data')
-    
-    const solAmount = 0.5
-    const solPriceUsd = 150
-
-    const result = await paperBuy(ctx.from.id, pending.tokenAddress, info.symbol, solAmount, info.priceUsd, solPriceUsd)
-
-    return ctx.reply(
-        `📝 Paper BUY: ${result.tokensReceived.toFixed(2)} ${info.symbol}\nSpent: ${solAmount} SOL\nNew balance: ${result.newBalance.toFixed(4)} SOL`
-    )
-    
-  }catch(err){
-    console.error("Error message:", err)
-    return ctx.reply(`⚠️ ${err.message}`)
-  }
-})
-
 
 bot.command('positions', async(ctx)=> {
   const positions = await getPaperPositions(ctx.from.id)
@@ -202,27 +181,6 @@ bot.command('positions', async(ctx)=> {
   return ctx.reply(`📊 Your positions:\n${lines.join('\n')}\n\nSell with /sell <id>`)
 })
 
-bot.command('sell', async(ctx)=>{
-  try{
-    const positionId = ctx.message.text.split(' ')[1]
-    if (!positionId) return ctx.reply ('Use: /sell <position id> — check /positions for IDs')
-    const solPriceUsd = 150
-
-
-    const positions = await getPaperPositions(ctx.from.id)
-    const position = positions.find((p)=> p.id === Number(positionId))
-    if (!position) return ctx.reply ('Position not found')
-
-    const currentInfo = await getTokenInfoWithFallback(position.token_address)
-    const currentPriceUsd = Number(currentInfo.priceUsd)
-    
-    const result = await paperSell(ctx.from.id, Number(positionId), currentPriceUsd, solPriceUsd)
-
-    return ctx.reply(`📃 paper SELL complete\nReceived: ${result.solReceived.toFixed(4)} SOL \n P&L: $${result.pnlUsd.toFixed(2)}`)
-  }catch(err){
-    return ctx.reply(`⚠️ ${err.message}`)
-  }
-})
 
 bot.command('chat', async (ctx) => {
   await setMode(ctx.chat.id, 'chat')
@@ -240,10 +198,127 @@ bot.command('menu', (ctx) => {
   )
 })
 
+
+async function executeBuy(ctx, solAmount) {
+  try{
+    const pending = await getPendingChart(ctx.chat.id)
+    if (!pending) return ctx.reply("Paste the token address first")
+    
+
+    const info = await getTokenInfoWithFallback(pending.tokenAddress)
+    if (!info) return ctx.reply('Could not find data')
+
+    const solPriceUsd = 100 
+    const result = await paperBuy(ctx.from.id, pending.tokenAddress, info.symbol, solAmount, info.priceUsd, solPriceUsd)
+
+    return ctx.reply(
+      `✍️ Bought${result.tokensReceived.toFixed(2)} ${info.symbol}\nSpent: ${solAmount} SOL\nBalance: ${result.newBalance.toFixed(4)} SOL\n\nEntry: $${info.priceUsd}\nCurrent: $${info.priceUsd}\nPnL: $0.00 (0.00%)`,
+      Markup.inlineKeyboard([[
+        Markup.button.callback('🔃',`refresh_pos_${result.positionId}`),
+        Markup.button.callback('💰sell',`sell_menu_${result.positionId}`),
+      ]])
+    )
+  }catch(err){
+    console.error("failed buy",err)
+    return ctx.reply(`⚠️ ${err.message}`)
+  }
+} 
+
 bot.action('mode_trading', async (ctx) => {
   await setMode(ctx.chat.id, 'trading')
   await ctx.answerCbQuery()
   await ctx.reply('Switched to Trading mode')
+})
+
+bot.action('show_buy', async(ctx) => {
+  await ctx.answerCbQuery()
+  return ctx.reply('Choose an amount:', Markup.inlineKeyboard([
+    ['0.01', '0.02', '0.03'].map(a => Markup.button.callback(`${a}SOL`, `buy_amt_${a}`)),
+    ['0.04', '0.05'].map(a => Markup.button.callback(`${a} SOL`, `buy_amt_${a}`)),
+    [Markup.button.callback('Custom amount', 'buy_custom')],
+  ]))
+})
+
+bot.action('buy_custom', async (ctx) => {
+  await ctx.answerCbQuery()
+  await setAwaitingCustomAmount(ctx.chat.id, true)
+  return ctx.reply('Enter the amount in SOL (e.g. 0.02):')
+})
+
+bot.action('show_positions', async (ctx)=>{
+  await ctx.answerCbQuery()
+  const positions = await getPaperPositions(ctx.from.id)
+  if (!positions.length) return ctx.reply('No open paper positions')
+  const lines = positions.map(p=>`#${p.id} - ${p.symbol}: ${Number(p.amount_tokens).toFixed(2)} @ $${p.entry_price}`)
+  return ctx.reply(`📊 Your positions:\n${lines.join('\n')}`)
+})
+
+bot.action(/^buy_amt_(.+)$/, async (ctx) => {
+  await ctx.answerCbQuery()
+  return executeBuy(ctx, Number(ctx.match[1]))
+})
+
+bot.action(/^refresh_pos_(\d+)$/, async(ctx)=>{
+  try{
+    const positionId = Number(ctx.match[1])
+    const positions = await getPaperPositions(ctx.from.id)
+    const position = positions.find(p => p.id === positionId)
+    if (!position) return ctx.answerCbQuery('Position not found')
+
+    const info = await getTokenInfoWithFallback(position.token_address)
+    if (!info) return ctx.answerCbQuery('Could not fetch price')
+
+    const currentPriceUsd = Number(info.priceUsd)
+    const entryPriceUsd = Number(position.entry_price)
+    const amountTokens = Number(position.amount_tokens)
+    const solSpent = Number(position.sol_spent)
+    const solPriceUsd = 100
+
+
+    const currentValueUsd = amountTokens*currentPriceUsd
+    const pnlUsd = currentValueUsd - solSpent*solPriceUsd
+    const pnlPercent = ((currentPriceUsd - entryPriceUsd)/entryPriceUsd)*100
+
+    await ctx.answerCbQuery('Refreshed')
+    await ctx.editMessageText(
+      `📝 ${position.symbol}\nAmount: ${amountTokens.toFixed(2)}\n\nEntry: $${entryPriceUsd}\nCurrent: $${currentPriceUsd}\nPnL: $${pnlUsd.toFixed(2)} (${pnlPercent.toFixed(2)}%)`,
+      Markup.inlineKeyboard([[
+        Markup.button.callback('🔄 Refresh', `refresh_pos_${positionId}`),
+        Markup.button.callback('💰 Sell', `sell_menu_${positionId}`),
+      ]]),
+    )
+  }catch(err){
+    console.error('Refreshed failed:',err)
+    await ctx.answerCbQuery('Something went wrong')
+  }
+})
+
+bot.action(/^sell_menu_(\d+)$/, async (ctx) => {
+  const positionId = ctx.match[1]
+  await ctx.answerCbQuery()
+  return ctx.reply('Sell how much?', Markup.inlineKeyboard([
+    [Markup.button.callback('25%', `sell_pct_${positionId}_25`), Markup.button.callback('50%', `sell_pct_${positionId}_50`)],
+    [Markup.button.callback('75%', `sell_pct_${positionId}_75`), Markup.button.callback('100%', `sell_pct_${positionId}_100`)],
+  ]))
+})
+
+bot.action(/^sell_pct_(\d+)_(\d+)$/, async (ctx) => {
+  try {
+    const positionId = Number(ctx.match[1])
+    const percent = Number(ctx.match[2])
+    await ctx.answerCbQuery()
+
+    const positions = await getPaperPositions(ctx.from.id)
+    const position = positions.find(p => p.id === positionId)
+    if (!position) return ctx.reply('Position not found')
+
+    const info = await getTokenInfoWithFallback(position.token_address)
+    if (!info) return ctx.reply('Could not fetch price')
+    const result = await paperSellPercentage(ctx.from.id, positionId, percent, Number(info.priceUsd), 150)
+    return ctx.reply(`📃 Sold ${percent}% — Received: ${result.solReceived.toFixed(4)} SOL\nP&L: $${result.pnlUsd.toFixed(2)}`)
+  } catch (err) {
+    return ctx.reply(`⚠️ ${err.message}`)
+  }
 })
 
 bot.action('mode_chat', async (ctx) => {
@@ -297,6 +372,20 @@ bot.action(/^tf_(.+)$/, async (ctx) => {
     console.error('Timeframe switch failed:', err)
     await ctx.answerCbQuery('something went wrong .... sha try again')
   }
+})
+
+bot.on('text', async (ctx, next) => {
+  const awaitingCustom = await getAwaitingCustomAmount(ctx.chat.id)
+  if (awaitingCustom) {
+    await setAwaitingCustomAmount(ctx.chat.id, false)
+    const amount = parseFloat(ctx.message.text.trim())
+    if (isNaN(amount) || amount <= 0) return ctx.reply("That doesn't look like a valid amount. Tap Buy again.")
+    return executeBuy(ctx, amount)
+  }
+
+  const mode = await getMode(ctx.chat.id)
+  if (mode === 'trading') return handleTradingInput(ctx)
+  return next()
 })
 
 bot.on('text', async (ctx, next) => {
@@ -363,14 +452,10 @@ function buildTokenLinkRows(tokenAddress, pairAddress){
   return [
     [
       Markup.button.url('DexScreener',`https://dexscreener.com/solana/${pairAddress}`),
-      Markup.button.url('Birdeye', `https://birdeye.so/token/${tokenAddress}?chain=solana`),
+      Markup.button.url('Solscan', `https://solscan.io/token/${tokenAddress}`),      
     ],
     [
       Markup.button.url('CoinGecko', `https://www.geckoterminal.com/solana/pools/${pairAddress}`),
-      Markup.button.url('Solscan', `https://solscan.io/token/${tokenAddress}`),
-    ],
-    [
-      Markup.button.url('Jupiter (swap)', `https://jup.ag/swap/SOL-${tokenAddress}`)
     ]
   ]
 }

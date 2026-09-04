@@ -70,3 +70,14 @@ export async function getChartState(chatId) {
     return null
   }
 }
+
+export async function setAwaitingCustomAmount(chatId, waiting){
+  if (waiting) await redis.set(`awaiting_custom:${chatId}`, '1', {ex: 300})
+  else await redis.del(`awaiting_custom:${chatId}`)
+}
+
+export async function getAwaitingCustomAmount(chatId){
+  const val = await redis.get(`awaiting_custom:${chatId}`)
+  return val === '1' || val === 1
+}
+
