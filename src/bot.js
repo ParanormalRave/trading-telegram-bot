@@ -598,7 +598,7 @@ async function handleTradingInput(ctx) {
       📊 *${info.name}* (${info.symbol})
 
       💸 Price: $${info.priceUsd}
-      📉 24h Change: ${info.priceChange24h}
+      📉 24h Change: ${info.priceChange24h}%
       💧  Liquidity: $${Number(info.liquidityUsd ?? 0).toLocaleString()}
       💹 24h Volume: $${Number(info.volume24h ?? 0).toLocaleString()}
       🏷  Market Cap: ${info.marketCap ? "$" + Number(info.marketCap).toLocaleString() : "N/A"}

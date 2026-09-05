@@ -17,7 +17,7 @@ const getTokeninfo = async (address) => {
     marketCap: pair.marketCap ?? null,
     dex: pair.dexId,
     pairAddress: pair.pairAddress,
-    pairCreatedAt: pair.createdAt,
+    pairCreatedAt: pair.pairCreatedAt,
     chartUrl: pair.url,
     fetchedAt: new Date().toISOString(),
   }
