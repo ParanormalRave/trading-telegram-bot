@@ -549,20 +549,11 @@ function buildTokenLinkRows(tokenAddress, pairAddress) {
     ],
   ];
 }
+
 async function handleTradingInput(ctx) {
   try {
     const text = ctx.message.text.trim();
     const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-
-    const introCard = await generateTokenIntroCard({
-      name: info.name,
-      symbol: info.symbol,
-      bannerUrl: info.imageUrl,
-      marketCap: info.marketCap,
-      volume24h: info.volume24h,
-      liquidityUsd: info.liquidityUsd,
-      priceChangePercent: info.priceChange24h,
-    });
 
     if (solanaAddressRegex.test(text)) {
       const info = await getTokenInfoWithFallback(text);
@@ -624,9 +615,30 @@ async function handleTradingInput(ctx) {
       👥 Holders: ${holderCount ?? "N/A"}
       🔝 Top 10 Hold: ${top10Holders}
     `.trim();
+
+      const introCard = await generateTokenIntroCard({
+        name: info.name,
+        symbol: info.symbol,
+        bannerUrl: info.imageUrl,
+        marketCap: info.marketCap,
+        volume24h: info.volume24h,
+        liquidityUsd: info.liquidityUsd,
+        priceChangePercent: info.priceChange24h,
+      });
       const priceHistory = await getPriceHistory(info.pairAddress).catch(
         () => null,
       );
+
+      const hasChartData = priceHistory && priceHistory.length > 0;
+      if (hasChartData) {
+        await setChartState(ctx.chat.id, {
+          symbol: info.symbol,
+          currentPrice: info.priceUsd,
+          priceChangeEmoji: info.priceChange24h >= 0 ? "🟢" : "🔴",
+          priceChangePercent: info.priceChange24h,
+        });
+      }
+
       if (priceHistory && priceHistory.length > 0) {
         const chartBuffer = await generateCandleStickChart(priceHistory);
         const priceChangeEmoji = info.priceChange24h >= 0 ? "🟢" : "🔴";
