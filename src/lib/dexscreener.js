@@ -1,3 +1,4 @@
+const default_token_image =   "https://drive.google.com/file/d/104Ot19u83FJL1P3S7uonYGMbz0d1qxu4/view?usp=sharing"
 const getTokeninfo = async (address) => {
   const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`)
   const data = await res.json()
@@ -19,6 +20,7 @@ const getTokeninfo = async (address) => {
     pairAddress: pair.pairAddress,
     pairCreatedAt: pair.pairCreatedAt,
     chartUrl: pair.url,
+    imageUrl: pair.info?.imageUrl ?? default_token_image,
     fetchedAt: new Date().toISOString(),
   }
 }
@@ -42,7 +44,7 @@ export async function getTokenInfoWithFallback(address) {
     symbol: attrs?.symbol,
     priceUsd: attrs?.price_usd,
     marketCap: attrs?.market_cap_usd,
-    imageUrl: attrs?.image_url ?? null,
+    imageUrl: attrs?.image_url ?? default_token_image,
     source: `geckoterminal`,
   }
 }
