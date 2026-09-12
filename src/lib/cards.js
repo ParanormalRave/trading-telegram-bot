@@ -1,6 +1,7 @@
 import { createCanvas, loadImage } from "canvas";
 import fs from "fs";
 import path from "path";
+import { arrayBuffer } from "stream/consumers";
 
 function formatUsd(n) {
   const num = Number(n) || 0;
@@ -8,6 +9,37 @@ function formatUsd(n) {
   if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
   if (num >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
   return `$${num.toFixed(2)}`;
+}
+
+
+async function loadImageSafe(url) {
+  const res = await fetch(url);
+  if(!res.ok) throw new Error(`Failed to fetch image: ${res.status}`)
+  const arrayBuffer = await res.arrayBuffer()
+  const pngBuffer = await sharp(Buffer.from(arrayBuffer)).png().toBuffer();
+  return loadImage(pngBuffer);
+}
+
+async function drawTokenAvatar(ctx, symbol, x, y, radius) {
+  const colors = ["#6366f1", "#ec4899", "#22c55e", "#f59e0b", "#3b82f6", "#ef4444"];
+  const letter = (symbol || "?").charAt(0).toUpperCase();
+  const colorIndex = letter.charCodeAt(0) % colors.length;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.fillStyle = colors[colorIndex];
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `bold ${radius}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(letter, x, y + 2);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.restore();
 }
 
 export async function generateTokenIntroCard({
