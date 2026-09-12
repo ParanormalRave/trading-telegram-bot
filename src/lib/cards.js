@@ -11,17 +11,23 @@ function formatUsd(n) {
   return `$${num.toFixed(2)}`;
 }
 
-
 async function loadImageSafe(url) {
   const res = await fetch(url);
-  if(!res.ok) throw new Error(`Failed to fetch image: ${res.status}`)
-  const arrayBuffer = await res.arrayBuffer()
+  if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
+  const arrayBuffer = await res.arrayBuffer();
   const pngBuffer = await sharp(Buffer.from(arrayBuffer)).png().toBuffer();
   return loadImage(pngBuffer);
 }
 
 async function drawTokenAvatar(ctx, symbol, x, y, radius) {
-  const colors = ["#6366f1", "#ec4899", "#22c55e", "#f59e0b", "#3b82f6", "#ef4444"];
+  const colors = [
+    "#6366f1",
+    "#ec4899",
+    "#22c55e",
+    "#f59e0b",
+    "#3b82f6",
+    "#ef4444",
+  ];
   const letter = (symbol || "?").charAt(0).toUpperCase();
   const colorIndex = letter.charCodeAt(0) % colors.length;
 
@@ -83,9 +89,10 @@ export async function generateTokenIntroCard({
   ctx.fillText(symbol, 16, 33);
 
   // % change badge, top-right
-  const up = priceChangePercent >= 0;
+  const priceChange = Number(priceChangePercent) || 0;
+  const up = priceChange >= 0;
   ctx.font = "bold 22px sans-serif";
-  const badgeText = `${up ? "+" : ""}${priceChangePercent.toFixed(2)}%`;
+  const badgeText = `${up ? "+" : ""}${priceChange.toFixed(2)}%`;
   const badgeWidth = ctx.measureText(badgeText).width + 24;
   ctx.fillStyle = up ? "#22c55e" : "#ef4444";
   ctx.fillRect(width - badgeWidth - 16, 12, badgeWidth, 38);

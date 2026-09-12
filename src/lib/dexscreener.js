@@ -1,10 +1,10 @@
-const default_token_image =   "https://drive.google.com/file/d/104Ot19u83FJL1P3S7uonYGMbz0d1qxu4/view?usp=sharing"
+const default_token_image = "https://zgbcqmmmjbafpitahnto.supabase.co/storage/v1/object/public/dax_default_image/dax_default_image.jpg"
+
 const getTokeninfo = async (address) => {
   const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`)
   const data = await res.json()
 
   if (!data.pairs || data.pairs.length === 0) return null
-  // finding the real market data
   const pair = data.pairs.sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0]
   console.log(data)
   return {
@@ -37,8 +37,9 @@ export async function getTokenInfoWithFallback(address) {
   const data = await res.json()
   const attrs = data?.data?.attributes
 
-    const topPoolId = data?.data?.relationships?.top_pools?.data?.[0]?.id
-  const poolAddress = topPoolId ? topPoolId.split('_')[1] : null // ids look like "solana_<poolAddress>"
+  const topPoolId = data?.data?.relationships?.top_pools?.data?.[0]?.id
+  const poolAddress = topPoolId ? topPoolId.split('_')[1] : null
+
   return {
     name: attrs?.name,
     symbol: attrs?.symbol,
@@ -49,18 +50,16 @@ export async function getTokenInfoWithFallback(address) {
   }
 }
 
-// this is for the chart
 export async function getPriceHistory(poolAddress, timeframe = 'hour', aggregate = 1, limit = 300) {
   const res = await fetch(
     `https://api.geckoterminal.com/api/v2/networks/solana/pools/${poolAddress}/ohlcv/${timeframe}?aggregate=${aggregate}&limit=${limit}`,
   )
   const data = await res.json()
-
   const candles = (await data.data?.attributes?.ohlcv_list) ?? []
 
   return candles
     .map(([timestamp, open, high, low, close]) => ({
-      timestamp: timestamp*1000,
+      timestamp: timestamp * 1000,
       open,
       high,
       low,
@@ -70,7 +69,7 @@ export async function getPriceHistory(poolAddress, timeframe = 'hour', aggregate
 }
 
 export function getTokenAge(pairCreatedAt) {
-  if(!pairCreatedAt) return 'Unknown'
+  if (!pairCreatedAt) return 'Unknown'
   const ageMs = Date.now() - pairCreatedAt
   const minutes = Math.floor(ageMs / 60000)
   const hours = Math.floor(minutes / 60)
