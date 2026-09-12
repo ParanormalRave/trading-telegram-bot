@@ -40,6 +40,7 @@ import {
   getPaperPositions,
   paperSellPercentage,
 } from "./lib/paperTrading.js";
+import { generateTokenIntroCard } from "./lib/cards.js";
 
 export const bot = new Telegraf(process.env.BOT_TOKEN);
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -157,7 +158,7 @@ bot.command("reset", async (ctx) => {
 bot.command("trading", async (ctx) => {
   await setMode(ctx.chat.id, "trading");
   await ctx.reply(
-    `📈 Trading mode is On. Paste a contact address to see details`,
+    `📈 Trading mode is On. Paste a contract address to see details`,
   );
 });
 
@@ -245,7 +246,10 @@ async function executeBuy(ctx, solAmount) {
       `✍️ Bought${result.tokensReceived.toFixed(2)} ${info.symbol}\nSpent: ${solAmount} SOL\nBalance: ${result.newBalance.toFixed(4)} SOL\n\nEntry: $${info.priceUsd}\nCurrent: $${info.priceUsd}\nPnL: $0.00 (0.00%)`,
       Markup.inlineKeyboard([
         [
-          Markup.button.callback("🔃", `refresh_pos_${result.positionId}`),
+          Markup.button.callback(
+            "🔃 refresh",
+            `refresh_pos_${result.positionId}`,
+          ),
           Markup.button.callback("💰sell", `sell_menu_${result.positionId}`),
         ],
       ]),
@@ -550,6 +554,16 @@ async function handleTradingInput(ctx) {
     const text = ctx.message.text.trim();
     const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
+    const introCard = await generateTokenIntroCard({
+      name: info.name,
+      symbol: info.symbol,
+      bannerUrl: info.imageUrl,
+      marketCap: info.marketCap,
+      volume24h: info.volume24h,
+      liquidityUsd: info.liquidityUsd,
+      priceChangePercent: info.priceChange24h,
+    });
+
     if (solanaAddressRegex.test(text)) {
       const info = await getTokenInfoWithFallback(text);
       if (!info)
@@ -623,19 +637,27 @@ async function handleTradingInput(ctx) {
           priceChangePercent: info.priceChange24h,
         });
         return ctx.replyWithPhoto(
-          { source: chartBuffer },
+          { source: introCard },
           {
             caption: message,
             parse_mode: "Markdown",
             ...Markup.inlineKeyboard([
+              ...(hasChartData
+                ? [
+                    [
+                      Markup.button.callback("5M", "tf_5m"),
+                      Markup.button.callback("15M", "tf_15m"),
+                      Markup.button.callback("1H", "tf_1h"),
+                    ],
+                    [
+                      Markup.button.callback("4H", "tf_4h"),
+                      Markup.button.callback("1D", "tf_1d"),
+                    ],
+                  ]
+                : []),
               [
-                Markup.button.callback("5M", "tf_5m"),
-                Markup.button.callback("15M", "tf_15m"),
-                Markup.button.callback("1H", "tf_1h"),
-              ],
-              [
-                Markup.button.callback("4H", "tf_4h"),
-                Markup.button.callback("1D", "tf_1d"),
+                Markup.button.callback("💰 Buy", "show_buy"),
+                Markup.button.callback("📊 Positions", "show_positions"),
               ],
               ...buildTokenLinkRows(text, info.pairAddress),
             ]),

@@ -42,6 +42,7 @@ export async function getTokenInfoWithFallback(address) {
     symbol: attrs?.symbol,
     priceUsd: attrs?.price_usd,
     marketCap: attrs?.market_cap_usd,
+    imageUrl: attrs?.image_url ?? null,
     source: `geckoterminal`,
   }
 }
