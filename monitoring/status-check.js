@@ -71,7 +71,7 @@ async function checkStatus() {
   const diskTotalQuery = `sum(REAL_DISK_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
   const cpuQuery = `100 * (1 - (sum(rate(fly_instance_cpu{app="${APP_NAME}", mode="idle"}[5m])) / sum(rate(fly_instance_cpu{app="${APP_NAME}"}[5m]))))`;
 
-  const [memUsedBytes, memTotalBytes, cpuPercent] = await Promise.all([
+  const [memUsedBytes, memTotalBytes, cpuPercent, diskUsedBytes,diskTotalBytes] = await Promise.all([
     queryMetric(memUsedQuery),
     queryMetric(memTotalQuery),
     queryMetric(cpuQuery),
