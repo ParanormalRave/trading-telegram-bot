@@ -65,14 +65,18 @@ async function checkStatus() {
     return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
   });
 
-  const memUsedQuery = `sum(fly_instance_memory_mem_used{app="${APP_NAME}"})`;
-  const memTotalQuery = `sum(fly_instance_memory_mem_total{app="${APP_NAME}"})`;
+  const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
+  const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
+  const diskUsedQuery = `sum(REAL_DISK_USED_METRIC_NAME{app="${APP_NAME}"})`;
+  const diskTotalQuery = `sum(REAL_DISK_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
   const cpuQuery = `100 * (1 - (sum(rate(fly_instance_cpu{app="${APP_NAME}", mode="idle"}[5m])) / sum(rate(fly_instance_cpu{app="${APP_NAME}"}[5m]))))`;
 
   const [memUsedBytes, memTotalBytes, cpuPercent] = await Promise.all([
     queryMetric(memUsedQuery),
     queryMetric(memTotalQuery),
     queryMetric(cpuQuery),
+    queryMetric(diskUsedQuery),
+    queryMetric(diskTotalQuery),
   ]);
 
   const memLine =
@@ -85,6 +89,11 @@ async function checkStatus() {
       ? `RAM usage: ${((memUsedBytes / memTotalBytes) * 100).toFixed(1)}%`
       : `RAM usage: unavailable`;
 
+  const diskLine =
+    diskUsedBytes !== null && diskTotalBytes !== null
+      ? `Disk: ${(diskUsedBytes / 1024 / 1024 / 1024).toFixed(1)}GB / ${(diskTotalBytes / 1024 / 1024 / 1024).toFixed(1)}GB`
+      : "Disk: unavailable";
+  
   const cpuLine =
     cpuPercent !== null ? `CPU: ${cpuPercent.toFixed(1)}%` : "CPU: unavailable";
 
@@ -94,6 +103,7 @@ async function checkStatus() {
     memLine,
     memPercentage,
     cpuLine,
+    diskLine,
   ].join("\n");
 
   await fetch(DISCORD_WEBHOOK_URL, {
