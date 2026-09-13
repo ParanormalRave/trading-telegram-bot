@@ -2,7 +2,7 @@ const FLY_API_TOKEN = process.env.FLY_API_TOKEN;
 const FLY_ORG_SLUG = process.env.FLY_ORG_SLUG;
 const FLY_ORG_TOKEN = process.env.FLY_ORG_TOKEN;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const APP_NAME = `daxthebot-soft-shape-4207`;
+const APP_NAME =process.env.APP_NAME;
 console.log(
   'Token check — starts with FlyV1:', FLY_ORG_TOKEN?.startsWith('FlyV1'),
   '| length:', FLY_ORG_TOKEN?.length
