@@ -10,7 +10,7 @@ async function queryMetric(promQuery) {
     const res = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `FlyV1 ${FLY_ORG_TOKEN}`,
+        Authorization: `${FLY_ORG_TOKEN}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: `query=${encodeURIComponent(promQuery)}`,
@@ -36,7 +36,7 @@ async function checkStatus() {
   const res = await fetch(
     `https://api.machines.dev/v1/apps/${APP_NAME}/machines`,
     {
-      headers: { Authorization: `FlyV1 ${FLY_API_TOKEN}` },
+      headers: { Authorization: `${FLY_API_TOKEN}` },
     },
   );
 
