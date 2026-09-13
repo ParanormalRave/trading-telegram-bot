@@ -3,7 +3,10 @@ const FLY_ORG_SLUG = process.env.FLY_ORG_SLUG;
 const FLY_ORG_TOKEN = process.env.FLY_ORG_TOKEN;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const APP_NAME = `daxthebot-soft-shape-4207`;
-
+console.log(
+  'Token check — starts with FlyV1:', FLY_ORG_TOKEN?.startsWith('FlyV1'),
+  '| length:', FLY_ORG_TOKEN?.length
+);
 async function queryMetric(promQuery) {
   try {
     const url = `https://api.fly.io/prometheus/${FLY_ORG_SLUG}/api/v1/query`;
