@@ -18,15 +18,17 @@ async function queryMetric(promQuery) {
       },
       body: `query=${encodeURIComponent(promQuery)}`,
     });
-    const text = await res.text();
+    // const text = await res.text();
+
+    const data = await res.json();
 
     if (!res.ok) {
       console.error(
-        `queryMetric failed for "${promQuery}" — status ${res.status}: ${text}`,
+        `queryMetric failed for "${promQuery}" — status ${res.status}: ${JSON.stringify(data)}`,
       );
       return null;
     }
-    const data = await res.json();
+    
     const value = data?.data?.result?.[0]?.value?.[1];
     return value !== undefined ? Number(value) : null;
   } catch (err) {
