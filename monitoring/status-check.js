@@ -73,13 +73,13 @@ async function checkStatus() {
   ]);
 
   const memLine =
-    memUsedBytes && memTotalBytes
+    memUsedBytes !== null && memTotalBytes !== null
       ? `RAM: ${(memUsedBytes / 1024 / 1024).toFixed(0)}MB / ${(memTotalBytes / 1024 / 1024).toFixed(0)}MB`
       : "RAM: unavailable";
 
   const memPercentage =
-    memUsedBytes && memTotalBytes
-      ? `RAM usage: ${(((memTotalBytes - memUsedBytes) / memTotalBytes) * 100).toFixed(1)}%`
+    memUsedBytes !== null && memTotalBytes !== null
+      ? `RAM usage: ${((memUsedBytes / memTotalBytes) * 100).toFixed(1)}%`
       : `RAM usage: unavailable`;
 
   const cpuLine =
