@@ -58,10 +58,13 @@ async function checkStatus() {
     return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
   });
 
+  const cpuQuery = `100 * (1 - (sum(rate(fly_instance_cpu{app="${APP_NAME}", mode="idle"}[5m])) / sum(rate(fly_instance_cpu{app="${APP_NAME}"}[5m]))))`;
+
+
   const [memUsedBytes, memTotalBytes, cpuPercent] = await Promise.all([
     queryMetric(`fly_instance_memory_mem_used{app="${APP_NAME}"}`),
     queryMetric(`fly_instance_memory_mem_total{app="${APP_NAME}"}`),
-    queryMetric(`fly_instance_cpu{app="${APP_NAME}"}`),
+    queryMetric(cpuQuery),
   ]);
 
   const memLine =
