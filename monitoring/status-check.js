@@ -2,10 +2,12 @@ const FLY_API_TOKEN = process.env.FLY_API_TOKEN;
 const FLY_ORG_SLUG = process.env.FLY_ORG_SLUG;
 const FLY_ORG_TOKEN = process.env.FLY_ORG_TOKEN;
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
-const APP_NAME = 'daxthebot-soft-shape-4207';
+const APP_NAME = "daxthebot-soft-shape-4207";
 console.log(
-  'Token check — starts with FlyV1:', FLY_ORG_TOKEN?.startsWith('FlyV1'),
-  '| length:', FLY_ORG_TOKEN?.length
+  "Token check — starts with FlyV1:",
+  FLY_ORG_TOKEN?.startsWith("FlyV1"),
+  "| length:",
+  FLY_ORG_TOKEN?.length,
 );
 async function queryMetric(promQuery) {
   try {
@@ -28,7 +30,7 @@ async function queryMetric(promQuery) {
       );
       return null;
     }
-    
+
     const value = data?.data?.result?.[0]?.value?.[1];
     return value !== undefined ? Number(value) : null;
   } catch (err) {
@@ -63,12 +65,13 @@ async function checkStatus() {
     return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
   });
 
+  const memUsedQuery = `sum(fly_instance_memory_mem_used{app="${APP_NAME}"})`;
+  const memTotalQuery = `sum(fly_instance_memory_mem_total{app="${APP_NAME}"})`;
   const cpuQuery = `100 * (1 - (sum(rate(fly_instance_cpu{app="${APP_NAME}", mode="idle"}[5m])) / sum(rate(fly_instance_cpu{app="${APP_NAME}"}[5m]))))`;
 
-
   const [memUsedBytes, memTotalBytes, cpuPercent] = await Promise.all([
-    queryMetric(`fly_instance_memory_mem_used{app="${APP_NAME}"}`),
-    queryMetric(`fly_instance_memory_mem_total{app="${APP_NAME}"}`),
+    queryMetric(memUsedQuery),
+    queryMetric(memTotalQuery),
     queryMetric(cpuQuery),
   ]);
 
