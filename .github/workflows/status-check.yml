@@ -15,4 +15,6 @@ jobs:
       - run: node monitoring/status-check.js
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          FLY_ORG_SLUG: ${{secrets.FLY_ORG_SLUG}}
+          FLY_ORG_TOKEN: ${{secrets.FLY_ORG_TOKEN}}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
