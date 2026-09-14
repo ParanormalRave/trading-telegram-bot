@@ -60,10 +60,10 @@ async function checkStatus() {
   const machines = await res.json();
   console.log("Raw response:", JSON.stringify(machines, null, 2));
   console.log("Response status:", res.status);
-  const machineLines = machines.map((m) => {
-    const uptimeMs = Date.now() - new Date(m.updated_at).getTime();
-    return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
-  });
+  // const machineLines = machines.map((m) => {
+  //   const uptimeMs = Date.now() - new Date(m.updated_at).getTime();
+  //   return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
+  // });
 
   // const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
   // const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
@@ -101,7 +101,7 @@ async function checkStatus() {
 
   const memPercentage =
     totalMemMb !== null && memFreeBytes !== null
-      ? `RAM usage: ${((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024 / (totalMemMb * 1024 * 1024)) * (100).toFixed(1)}%/ 100%`
+      ? `RAM usage: ${(((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024).toFixed(0) / (totalMemMb * 1024 * 1024)) * (100).toFixed(1)}% / 100%`
       : `RAM usage: unavailable`;
 
   const diskLine =
@@ -119,7 +119,7 @@ async function checkStatus() {
 
   const message = [
     "📊 **Dax status**",
-    ...machineLines,
+    // ...machineLines,
     memLine,
     memPercentage,
     cpuLine,
