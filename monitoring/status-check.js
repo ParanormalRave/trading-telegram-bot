@@ -65,8 +65,8 @@ async function checkStatus() {
     return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
   });
 
-  const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
-  const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
+  // const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
+  // const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
   const memFreeQuery = `sum(fly_instance_memory_mem_free{app="${APP_NAME}"})`;
   const uptimeQuery = `sum(fly_instance_uptime_seconds{app="${APP_NAME}"})`;
   const diskAvailQuery = `sum(fly_instance_filesystem_blocks_avail{app="${APP_NAME}", mount="/.fly-upper-layer"})`;
@@ -82,8 +82,8 @@ async function checkStatus() {
     cpuPercent,
     diskTotalBlocks,
   ] = await Promise.all([
-    queryMetric(memUsedQuery),
-    queryMetric(memTotalQuery),
+    // queryMetric(memUsedQuery),
+    // queryMetric(memTotalQuery),
     queryMetric(memFreeQuery),
     queryMetric(uptimeQuery),
     queryMetric(diskAvailQuery),
@@ -102,7 +102,7 @@ async function checkStatus() {
 
   const memPercentage =
     memUsedBytes !== null && memTotalBytes !== null
-      ? `RAM usage: ${((memUsedBytes / memTotalBytes) * 100).toFixed(1)}%`
+      ? `RAM usage: ${((((totalMemMb * 1024 * 1024 - memFreeBytes)/ 1024 /1024))/totalMemMb * 1024 * 1024 )* 100 .toFixed(1)}%/ 100%`
       : `RAM usage: unavailable`;
 
   const diskLine =
