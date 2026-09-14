@@ -65,8 +65,9 @@ async function checkStatus() {
     return `**${m.region}** — ${m.state} — ${formatDuration(uptimeMs)}`;
   });
 
-  const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
-  const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
+  // const memUsedQuery = `sum(REAL_MEM_USED_METRIC_NAME{app="${APP_NAME}"})`;
+  // const memTotalQuery = `sum(REAL_MEM_TOTAL_METRIC_NAME{app="${APP_NAME}"})`;
+  const memFreeQuery = `sum(fly_instance_memory_mem_free{app="${APP_NAME}"})`;
   const uptimeQuery = `sum(fly_instance_uptime_seconds{app="${APP_NAME}"})`;
   const diskAvailQuery = `sum(fly_instance_filesystem_blocks_avail{app="${APP_NAME}", mount="/.fly-upper-layer"})`;
   const diskTotalQuery = `sum(fly_instance_filesystem_blocks{app="${APP_NAME}", mount="/.fly-upper-layer"})`;
@@ -83,7 +84,7 @@ async function checkStatus() {
   ] = await Promise.all([
     // queryMetric(memUsedQuery),
     // queryMetric(memTotalQuery),
-    queryMetric(memFreeBytes),
+    queryMetric(memFreeQuery),
     queryMetric(uptimeQuery),
     queryMetric(diskAvailQuery),
     queryMetric(cpuQuery),
