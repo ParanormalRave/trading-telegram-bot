@@ -101,7 +101,7 @@ async function checkStatus() {
 
   const memPercentage =
     totalMemMb !== null && memFreeBytes !== null
-      ? `RAM usage: ${(((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024).toFixed(0) / (totalMemMb * 1024 * 1024)) * (100).toFixed(1)}% / 100%`
+      ? `RAM usage: ${(((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024).toFixed(0) / (totalMemMb)) * (100).toFixed(1)}% / 100%`
       : `RAM usage: unavailable`;
 
   const diskLine =
