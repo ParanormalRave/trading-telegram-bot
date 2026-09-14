@@ -91,30 +91,31 @@ async function checkStatus() {
     queryMetric(diskTotalQuery),
   ]);
 
-
-  const BLOCK_SIZE = 4096; 
+  const BLOCK_SIZE = 4096;
   const totalMemMb = machines[0]?.config?.guest?.memory_mb ?? null;
 
   const memLine =
-  memFreeBytes !== null && totalMemMb !== null
-    ? `RAM: ${((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024).toFixed(0)}MB / ${totalMemMb}MB`
-    : "RAM: unavailable";
+    memFreeBytes !== null && totalMemMb !== null
+      ? `RAM: ${((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024).toFixed(0)}MB / ${totalMemMb}MB`
+      : "RAM: unavailable";
 
   const memPercentage =
     totalMemMb !== null && memFreeBytes !== null
-      ? `RAM usage: ${((((totalMemMb * 1024 * 1024 - memFreeBytes)/ 1024 /1024))/totalMemMb * 1024 * 1024 )* 100 .toFixed(1)}%/ 100%`
+      ? `RAM usage: ${((totalMemMb * 1024 * 1024 - memFreeBytes) / 1024 / 1024 / (totalMemMb * 1024 * 1024)) * (100).toFixed(1)}%/ 100%`
       : `RAM usage: unavailable`;
 
   const diskLine =
-  diskAvailBlocks !== null && diskTotalBlocks !== null
-    ? `Disk: ${(((diskTotalBlocks - diskAvailBlocks) * BLOCK_SIZE) / 1024 / 1024 / 1024).toFixed(2)}GB / ${((diskTotalBlocks * BLOCK_SIZE) / 1024 / 1024 / 1024).toFixed(2)}GB`
-    : "Disk: unavailable";
+    diskAvailBlocks !== null && diskTotalBlocks !== null
+      ? `Disk: ${(((diskTotalBlocks - diskAvailBlocks) * BLOCK_SIZE) / 1024 / 1024 / 1024).toFixed(2)}GB / ${((diskTotalBlocks * BLOCK_SIZE) / 1024 / 1024 / 1024).toFixed(2)}GB`
+      : "Disk: unavailable";
 
   const cpuLine =
     cpuPercent !== null ? `CPU: ${cpuPercent.toFixed(1)}%` : "CPU: unavailable";
 
   const uptimeLine =
-  uptimeSeconds !== null ? `Uptime: ${formatDuration(uptimeSeconds * 1000)}` : "Uptime: unavailable";
+    uptimeSeconds !== null
+      ? `Uptime: ${formatDuration(uptimeSeconds * 1000)}`
+      : "Uptime: unavailable";
 
   const message = [
     "📊 **Dax status**",
